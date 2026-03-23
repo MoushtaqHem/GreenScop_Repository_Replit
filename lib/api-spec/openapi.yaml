@@ -1,15 +1,16 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: GreenScope AI API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: plants
+    description: Plant operations
 paths:
   /healthz:
     get:
@@ -24,6 +25,199 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /plants/scan:
+    post:
+      operationId: scanPlant
+      tags: [plants]
+      summary: Scan a plant image with AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScanPlantBody"
+      responses:
+        "200":
+          description: Plant scan result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlantReport"
+
+  /plants/garden:
+    get:
+      operationId: getGarden
+      tags: [plants]
+      summary: Get user's garden
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Garden plants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavedPlant"
+    post:
+      operationId: addToGarden
+      tags: [plants]
+      summary: Add plant to garden
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToGardenBody"
+      responses:
+        "201":
+          description: Added to garden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedPlant"
+
+  /plants/garden/{id}:
+    delete:
+      operationId: removeFromGarden
+      tags: [plants]
+      summary: Remove plant from garden
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /plants/favorites:
+    get:
+      operationId: getFavorites
+      tags: [plants]
+      summary: Get user's favorites
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Favorite plants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavedPlant"
+    post:
+      operationId: addToFavorites
+      tags: [plants]
+      summary: Add plant to favorites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToGardenBody"
+      responses:
+        "201":
+          description: Added to favorites
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedPlant"
+
+  /plants/favorites/{id}:
+    delete:
+      operationId: removeFromFavorites
+      tags: [plants]
+      summary: Remove plant from favorites
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /plants/scans:
+    get:
+      operationId: getScans
+      tags: [plants]
+      summary: Get user's recent scans
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recent scans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScanRecord"
+
+  /plants/auth/register:
+    post:
+      operationId: register
+      tags: [plants]
+      summary: Register a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthBody"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /plants/auth/login:
+    post:
+      operationId: login
+      tags: [plants]
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +228,181 @@ components:
       required:
         - status
 
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    AuthBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        token:
+          type: string
+      required:
+        - userId
+        - email
+        - token
+
+    ScanPlantBody:
+      type: object
+      properties:
+        imageBase64:
+          type: string
+        userId:
+          type: string
+      required:
+        - imageBase64
+        - userId
+
+    NutritionItem:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: string
+        percentage:
+          type: string
+      required:
+        - name
+        - amount
+        - percentage
+
+    PlantReport:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        scientificName:
+          type: string
+        description:
+          type: string
+        benefits:
+          type: string
+        care:
+          type: string
+        nutrition:
+          type: array
+          items:
+            $ref: "#/components/schemas/NutritionItem"
+        imageBase64:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - scientificName
+        - description
+        - benefits
+        - care
+        - nutrition
+        - createdAt
+
+    AddToGardenBody:
+      type: object
+      properties:
+        userId:
+          type: string
+        plantName:
+          type: string
+        scientificName:
+          type: string
+        description:
+          type: string
+        benefits:
+          type: string
+        care:
+          type: string
+        nutrition:
+          type: array
+          items:
+            $ref: "#/components/schemas/NutritionItem"
+        imageBase64:
+          type: string
+      required:
+        - userId
+        - plantName
+        - scientificName
+        - description
+        - benefits
+        - care
+        - nutrition
+
+    SavedPlant:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        plantName:
+          type: string
+        scientificName:
+          type: string
+        description:
+          type: string
+        benefits:
+          type: string
+        care:
+          type: string
+        nutrition:
+          type: array
+          items:
+            $ref: "#/components/schemas/NutritionItem"
+        imageBase64:
+          type: string
+        savedAt:
+          type: string
+      required:
+        - id
+        - userId
+        - plantName
+        - scientificName
+        - description
+        - benefits
+        - care
+        - nutrition
+        - savedAt
+
+    ScanRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        plantName:
+          type: string
+        scientificName:
+          type: string
+        imageBase64:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - plantName
+        - scientificName
+        - createdAt

@@ -1,0 +1,266 @@
+
+
+You are a senior Flutter engineer, UI/UX designer, and Firebase architect.
+
+Build a complete production-ready Flutter (Dart) mobile application for plant identification using AI, with a modern nature-inspired design and fully integrated Firebase backend.
+
+--------------------------------------------------
+
+🎯 App Name:
+GreenScope AI
+
+--------------------------------------------------
+
+🌿 UI/UX DESIGN (VERY IMPORTANT)
+
+Design a modern, elegant UI inspired by nature:
+
+🎨 Color Palette:
+- Primary: #2E7D32 (Deep Green)
+- Secondary: #66BB6A (Light Green)
+- Accent: #A5D6A7 (Soft Green)
+- Background: #F1F8E9 (Very Light Green)
+- Text: #1B5E20
+
+✨ Style:
+- Soft shadows
+- Rounded corners (16px+)
+- Glassmorphism (light)
+- Smooth animations
+- Clean minimal layout
+
+📱 RTL Support (Arabic + English)
+
+--------------------------------------------------
+
+📱 APP SCREENS
+
+1️⃣ Authentication Screen
+- Email & Password login
+- Register new account
+- Firebase Auth integration
+
+--------------------------------------------------
+
+2️⃣ Main Navigation (Bottom Navigation Bar)
+
+Tabs:
+- Home
+- Garden
+- Scan
+- Favorites
+- Settings
+
+--------------------------------------------------
+
+3️⃣ Home Screen
+
+- Featured plants
+- Recent scans
+- Quick actions
+- Search bar
+
+--------------------------------------------------
+
+4️⃣ Camera / Scan Screen
+
+- Open camera
+- Capture image
+- Preview image
+- Send to AI API
+
+--------------------------------------------------
+
+5️⃣ Plant Report Screen (VERY IMPORTANT)
+
+Display structured report:
+
+- Plant Name
+- Scientific Name
+- Description
+- Benefits
+- Care Instructions
+
+🌿 Add Section:
+"Nutritional Values"
+
+Display as table:
+
+| Element | Amount | Daily % |
+
+Include:
+- Vitamin A
+- Vitamin C
+- Vitamin E
+- Calcium
+- Iron
+- Magnesium
+- Potassium
+
+✔ Scrollable
+✔ Beautiful card design
+
+--------------------------------------------------
+
+6️⃣ Garden Screen
+
+- Saved plants
+- Grid layout
+- Stored in Firestore
+
+--------------------------------------------------
+
+7️⃣ Favorites Screen
+
+- Saved favorite reports
+
+--------------------------------------------------
+
+8️⃣ Settings Screen
+
+- User preferences
+- Language switch
+- Dark mode toggle
+
+--------------------------------------------------
+
+🤖 AI INTEGRATION
+
+- Use REST API (Gemini or similar)
+- Send image
+- Receive JSON:
+
+{
+  name,
+  scientific_name,
+  description,
+  benefits,
+  care,
+  nutrition: [
+    { name, amount, percentage }
+  ]
+}
+
+--------------------------------------------------
+
+🔥 STATE MANAGEMENT
+
+Use:
+Riverpod (preferred)
+
+--------------------------------------------------
+
+📦 FIREBASE SETUP (CREATE NEW PROJECT)
+
+Create a new Firebase project:
+
+Project Name:
+greenscope-ai-app
+
+--------------------------------------------------
+
+Enable:
+
+1. Firebase Authentication
+   - Email/Password
+
+2. Cloud Firestore
+
+3. Firebase Storage (for images)
+
+--------------------------------------------------
+
+📊 FIRESTORE DATABASE STRUCTURE
+
+Collection: users
+- user_id
+- email
+- created_at
+
+Collection: plants
+- plant_id
+- name
+- scientific_name
+- description
+- benefits
+- care
+- image_url
+- created_at
+
+Collection: garden
+- id
+- user_id
+- plant_id
+- saved_at
+
+Collection: favorites
+- id
+- user_id
+- plant_id
+
+Collection: scans
+- id
+- user_id
+- image_url
+- result_json
+- created_at
+
+--------------------------------------------------
+
+🔗 FIREBASE INTEGRATION (IMPORTANT)
+
+- Connect Flutter app using:
+  firebase_core
+  firebase_auth
+  cloud_firestore
+  firebase_storage
+
+- Auto initialize Firebase
+
+--------------------------------------------------
+
+📁 PROJECT STRUCTURE
+
+lib/
+  core/
+  features/
+    auth/
+    home/
+    scan/
+    report/
+    garden/
+    favorites/
+    settings/
+  services/
+  models/
+
+--------------------------------------------------
+
+⚡ PERFORMANCE
+
+- Compress images before upload
+- Cache results
+- Lazy loading
+
+--------------------------------------------------
+
+🔐 SECURITY
+
+- Firebase rules:
+  user can access only their data
+
+--------------------------------------------------
+
+🎯 FINAL RESULT
+
+A fully working Flutter app with:
+
+✔ AI plant detection  
+✔ Beautiful modern UI  
+✔ Firebase backend  
+✔ Nutrition table  
+✔ Garden + Favorites  
+✔ Clean architecture  
+✔ Ready for production  
+
+
