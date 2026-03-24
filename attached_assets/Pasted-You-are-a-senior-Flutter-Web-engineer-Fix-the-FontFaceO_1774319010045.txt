@@ -1,0 +1,117 @@
+You are a senior Flutter Web engineer.
+
+Fix the "FontFaceObserver 6000ms timeout exceeded" error in a Flutter Web app running on Replit.
+
+--------------------------------------------------
+
+🚨 ROOT CAUSE
+
+The error is NOT from Flutter UI code.
+
+It is caused by:
+
+- fontfaceobserver JS script
+- Flutter web index.html loading fonts
+- external font loading (Google Fonts)
+
+This blocks app startup completely.
+
+--------------------------------------------------
+
+✅ REQUIRED FIXES (CRITICAL)
+
+1. EDIT web/index.html
+
+REMOVE any script related to:
+
+- FontFaceObserver
+- Google Fonts
+- external font loading
+
+❌ REMOVE:
+
+<script src="https://...fontfaceobserver..."></script>
+<link href="https://fonts.googleapis.com/..." rel="stylesheet">
+
+--------------------------------------------------
+
+2. FORCE SYSTEM FONT (IMPORTANT)
+
+Inside index.html add:
+
+<style>
+  body {
+    font-family: Arial, sans-serif !important;
+  }
+</style>
+
+--------------------------------------------------
+
+3. DISABLE FONT BLOCKING
+
+Find Flutter loader section:
+
+<script>
+  window.addEventListener('load', function(ev) {
+    ...
+  });
+</script>
+
+Make sure:
+
+❌ No waiting for fonts before runApp
+❌ No font loading promises
+
+--------------------------------------------------
+
+4. CLEAN FLUTTER CONFIG
+
+In main.dart:
+
+DO NOT use GoogleFonts package
+
+Use:
+
+theme: ThemeData(
+  fontFamily: 'Arial',
+),
+
+--------------------------------------------------
+
+5. REMOVE ANY PACKAGE USING FONTS
+
+Check pubspec.yaml and REMOVE:
+
+- google_fonts
+- any font loader packages
+
+--------------------------------------------------
+
+6. HARD RESET BUILD
+
+Run:
+
+flutter clean
+flutter pub get
+flutter build web
+
+--------------------------------------------------
+
+7. FALLBACK SAFE MODE
+
+Ensure app runs EVEN if:
+
+- fonts fail
+- assets fail
+
+App must NOT block startup
+
+--------------------------------------------------
+
+🎯 FINAL RESULT
+
+✔ No FontFaceObserver error  
+✔ App loads instantly  
+✔ No timeout  
+✔ Works perfectly on Replit  
+✔ Image analysis screen works  
