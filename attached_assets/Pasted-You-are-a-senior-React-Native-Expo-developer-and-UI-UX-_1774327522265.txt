@@ -1,0 +1,133 @@
+You are a senior React Native (Expo) developer and UI/UX expert.
+
+Your task is to upgrade the app typography by adding professional Arabic fonts similar to Cairo and applying them globally.
+
+IMPORTANT:
+This is an Expo React Native app (NOT Flutter).
+
+--------------------------------------------------
+
+🎯 GOAL
+
+- Add modern Arabic fonts
+- Improve UI readability
+- Support RTL layout
+- Apply fonts globally
+
+--------------------------------------------------
+
+📦 STEP 1: INSTALL REQUIRED PACKAGES
+
+Install:
+
+expo install expo-font expo-asset
+
+--------------------------------------------------
+
+📁 STEP 2: CREATE FONTS FOLDER
+
+Create:
+
+assets/fonts/
+
+Add these font files:
+
+Tajawal-Regular.ttf  
+Tajawal-Bold.ttf  
+
+Almarai-Regular.ttf  
+Almarai-Bold.ttf  
+
+NotoSansArabic-Regular.ttf  
+NotoSansArabic-Bold.ttf  
+
+--------------------------------------------------
+
+🌐 STEP 3: DOWNLOAD FONTS
+
+Download fonts from Google Fonts and place them inside assets/fonts.
+
+--------------------------------------------------
+
+🧠 STEP 4: LOAD FONTS USING EXPO
+
+In App.js or root component:
+
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
+
+const [fontsLoaded] = useFonts({
+  'Tajawal': require('./assets/fonts/Tajawal-Regular.ttf'),
+  'Tajawal-Bold': require('./assets/fonts/Tajawal-Bold.ttf'),
+  'Almarai': require('./assets/fonts/Almarai-Regular.ttf'),
+  'NotoArabic': require('./assets/fonts/NotoSansArabic-Regular.ttf'),
+});
+
+if (!fontsLoaded) {
+  return null;
+}
+
+--------------------------------------------------
+
+🎨 STEP 5: CREATE GLOBAL TEXT STYLES
+
+Create a file:
+
+theme/fonts.js
+
+export const fonts = {
+  title: 'Tajawal-Bold',
+  body: 'NotoArabic',
+  caption: 'Almarai',
+};
+
+--------------------------------------------------
+
+📱 STEP 6: APPLY FONTS IN COMPONENTS
+
+Example:
+
+<Text style={{ fontFamily: fonts.title }}>
+  اسم النبات
+</Text>
+
+<Text style={{ fontFamily: fonts.body }}>
+  هذا وصف النبات
+</Text>
+
+--------------------------------------------------
+
+🌍 STEP 7: ENABLE RTL SUPPORT
+
+In App.js:
+
+import { I18nManager } from 'react-native';
+
+I18nManager.allowRTL(true);
+I18nManager.forceRTL(true);
+
+--------------------------------------------------
+
+✨ STEP 8: IMPROVE UI
+
+- Titles → Tajawal Bold
+- Body → Noto Arabic
+- Reports → Almarai
+- Buttons → Tajawal
+
+--------------------------------------------------
+
+⚡ PERFORMANCE
+
+- Load fonts once
+- Avoid reloading
+- Use fallback system font if needed
+
+--------------------------------------------------
+
+🎯 FINAL RESULT
+
+✔ Beautiful Arabic UI  
+✔ Smooth typography  
+✔ RTL support  
+✔ Professional design like top apps  
