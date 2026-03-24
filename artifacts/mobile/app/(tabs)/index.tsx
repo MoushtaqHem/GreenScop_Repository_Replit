@@ -8,12 +8,14 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
 import Colors from '@/constants/colors';
 
 interface ScanRecord {
@@ -24,55 +26,28 @@ interface ScanRecord {
   createdAt: string;
 }
 
-const FEATURED_PLANTS = [
-  {
-    id: 'f1',
-    name: 'Aloe Vera',
-    tag: 'Healing',
-    color: '#4CAF50',
-    icon: 'medkit' as const,
-  },
-  {
-    id: 'f2',
-    name: 'Lavender',
-    tag: 'Calming',
-    color: '#7B68EE',
-    icon: 'flower-outline' as const,
-  },
-  {
-    id: 'f3',
-    name: 'Mint',
-    tag: 'Refreshing',
-    color: '#00BCD4',
-    icon: 'leaf-outline' as const,
-  },
-  {
-    id: 'f4',
-    name: 'Rosemary',
-    tag: 'Aromatic',
-    color: '#FF7043',
-    icon: 'nutrition-outline' as const,
-  },
-];
-
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { t, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
   const [recentScans, setRecentScans] = useState<ScanRecord[]>([]);
   const [loadingScans, setLoadingScans] = useState(true);
   const [search, setSearch] = useState('');
 
+  const FEATURED_PLANTS = [
+    { id: 'f1', name: 'Aloe Vera',  tag: t('healing'),   color: '#4CAF50', icon: 'medkit' as const },
+    { id: 'f2', name: 'Lavender',   tag: t('calming'),   color: '#7B68EE', icon: 'flower-outline' as const },
+    { id: 'f3', name: 'Mint',       tag: t('refreshing'),color: '#00BCD4', icon: 'leaf-outline' as const },
+    { id: 'f4', name: 'Rosemary',   tag: t('aromatic'),  color: '#FF7043', icon: 'nutrition-outline' as const },
+  ];
+
   useEffect(() => {
     if (!user) return;
     fetch(`${BASE_URL}/api/plants/scans?userId=${user.userId}`)
       .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setRecentScans(data.slice().reverse());
-        }
-      })
+      .then((data) => { if (Array.isArray(data)) setRecentScans(data.slice().reverse()); })
       .catch(() => {})
       .finally(() => setLoadingScans(false));
   }, [user]);
@@ -90,10 +65,12 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, isRTL && styles.rowRTL]}>
           <View>
-            <Text style={styles.greeting}>Good morning</Text>
-            <Text style={styles.userName}>{user?.email?.split('@')[0] ?? 'Explorer'}</Text>
+            <Text style={[styles.greeting, isRTL && styles.textRTL]}>{t('goodMorning')}</Text>
+            <Text style={[styles.userName, isRTL && styles.textRTL]}>
+              {user?.email?.split('@')[0] ?? 'Explorer'}
+            </Text>
           </View>
           <View style={styles.avatarCircle}>
             <Ionicons name="person" size={22} color={Colors.primary} />
@@ -101,18 +78,19 @@ export default function HomeScreen() {
         </View>
 
         {/* Search */}
-        <View style={styles.searchWrapper}>
+        <View style={[styles.searchWrapper, isRTL && styles.rowRTL]}>
           <Ionicons name="search-outline" size={18} color={Colors.textMuted} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
-            placeholder="Search plants..."
+            style={[styles.searchInput, isRTL && styles.textRTL]}
+            placeholder={t('searchPlants')}
             placeholderTextColor={Colors.textMuted}
             value={search}
             onChangeText={setSearch}
+            textAlign={isRTL ? 'right' : 'left'}
           />
         </View>
 
-        {/* Quick Actions */}
+        {/* Quick Action CTA */}
         <View style={styles.quickActions}>
           <TouchableOpacity
             style={styles.scanCta}
@@ -125,10 +103,10 @@ export default function HomeScreen() {
               end={{ x: 1, y: 1 }}
               style={styles.scanCtaGradient}
             >
-              <View style={styles.scanCtaContent}>
+              <View style={[styles.scanCtaContent, isRTL && styles.rowRTL]}>
                 <View>
-                  <Text style={styles.scanCtaTitle}>Identify a Plant</Text>
-                  <Text style={styles.scanCtaSub}>Tap to scan with AI</Text>
+                  <Text style={[styles.scanCtaTitle, isRTL && styles.textRTL]}>{t('identifyPlant')}</Text>
+                  <Text style={[styles.scanCtaSub, isRTL && styles.textRTL]}>{t('tapToScan')}</Text>
                 </View>
                 <View style={styles.scanCtaIcon}>
                   <Ionicons name="camera" size={28} color={Colors.white} />
@@ -139,7 +117,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Featured Plants */}
-        <Text style={styles.sectionTitle}>Featured Plants</Text>
+        <Text style={[styles.sectionTitle, isRTL && styles.textRTL]}>{t('featuredPlants')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -149,11 +127,7 @@ export default function HomeScreen() {
           {FEATURED_PLANTS.filter(
             (p) => !search || p.name.toLowerCase().includes(search.toLowerCase())
           ).map((plant) => (
-            <TouchableOpacity
-              key={plant.id}
-              style={styles.featuredCard}
-              activeOpacity={0.85}
-            >
+            <TouchableOpacity key={plant.id} style={styles.featuredCard} activeOpacity={0.85}>
               <View style={[styles.featuredIcon, { backgroundColor: plant.color + '22' }]}>
                 <Ionicons name={plant.icon} size={32} color={plant.color} />
               </View>
@@ -166,11 +140,13 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* Recent Scans */}
-        <View style={styles.recentHeader}>
-          <Text style={styles.sectionTitle}>Recent Scans</Text>
+        <View style={[styles.recentHeader, isRTL && styles.rowRTL]}>
+          <Text style={[styles.sectionTitle, { marginBottom: 0 }, isRTL && styles.textRTL]}>
+            {t('recentScans')}
+          </Text>
           {recentScans.length > 0 && (
             <TouchableOpacity>
-              <Text style={styles.seeAll}>See all</Text>
+              <Text style={styles.seeAll}>{t('seeAll')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -180,13 +156,13 @@ export default function HomeScreen() {
         ) : recentScans.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="scan-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>No scans yet</Text>
-            <Text style={styles.emptySubText}>Scan a plant to see it here</Text>
+            <Text style={[styles.emptyText, isRTL && styles.textRTL]}>{t('noScansYet')}</Text>
+            <Text style={[styles.emptySubText, isRTL && styles.textRTL]}>{t('scanToSeeHere')}</Text>
           </View>
         ) : (
           recentScans.slice(0, 5).map((scan) => (
-            <View key={scan.id} style={styles.recentCard}>
-              <View style={styles.recentImageWrapper}>
+            <View key={scan.id} style={[styles.recentCard, isRTL && styles.rowRTL]}>
+              <View style={[styles.recentImageWrapper, isRTL ? { marginLeft: 14, marginRight: 0 } : {}]}>
                 {scan.imageBase64 ? (
                   <Image source={{ uri: scan.imageBase64 }} style={styles.recentImage} resizeMode="cover" />
                 ) : (
@@ -199,13 +175,15 @@ export default function HomeScreen() {
                 )}
               </View>
               <View style={styles.recentInfo}>
-                <Text style={styles.recentName}>{scan.plantName}</Text>
-                <Text style={styles.recentScientific} numberOfLines={1}>{scan.scientificName}</Text>
-                <Text style={styles.recentDate}>
-                  {new Date(scan.createdAt).toLocaleDateString()}
+                <Text style={[styles.recentName, isRTL && styles.textRTL]}>{scan.plantName}</Text>
+                <Text style={[styles.recentScientific, isRTL && styles.textRTL]} numberOfLines={1}>
+                  {scan.scientificName}
+                </Text>
+                <Text style={[styles.recentDate, isRTL && styles.textRTL]}>
+                  {new Date(scan.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={18} color={Colors.textMuted} />
             </View>
           ))
         )}
@@ -214,43 +192,24 @@ export default function HomeScreen() {
   );
 }
 
-import { Platform } from 'react-native';
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20 },
+  textRTL: { textAlign: 'right' },
+  rowRTL: { flexDirection: 'row-reverse' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
   },
-  greeting: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textMuted,
-  },
-  userName: {
-    fontSize: 24,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text,
-    textTransform: 'capitalize',
-  },
+  greeting: { fontSize: 14, color: Colors.textMuted },
+  userName: { fontSize: 24, color: Colors.text, textTransform: 'capitalize' },
   avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 44, height: 44, borderRadius: 22,
     backgroundColor: Colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
   searchWrapper: {
     flexDirection: 'row',
@@ -268,192 +227,81 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontFamily: 'Inter_400Regular',
-    fontSize: 15,
-    color: Colors.text,
-  },
-  quickActions: {
-    marginBottom: 28,
-  },
+  searchIcon: { marginRight: 8 },
+  searchInput: { flex: 1, fontSize: 15, color: Colors.text },
+  quickActions: { marginBottom: 28 },
   scanCta: {
-    borderRadius: 20,
-    overflow: 'hidden',
+    borderRadius: 20, overflow: 'hidden',
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowOpacity: 0.3, shadowRadius: 16, elevation: 6,
   },
-  scanCtaGradient: {
-    padding: 22,
-    borderRadius: 20,
-  },
+  scanCtaGradient: { padding: 22, borderRadius: 20 },
   scanCtaContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  scanCtaTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.white,
-  },
-  scanCtaSub: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.75)',
-    marginTop: 4,
-  },
+  scanCtaTitle: { fontSize: 20, color: Colors.white },
+  scanCtaSub: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
   scanCtaIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 60, height: 60, borderRadius: 30,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text,
-    marginBottom: 14,
-  },
-  featuredScroll: {
-    marginHorizontal: -20,
-    marginBottom: 28,
-  },
-  featuredContent: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
+  sectionTitle: { fontSize: 18, color: Colors.text, marginBottom: 14 },
+  featuredScroll: { marginHorizontal: -20, marginBottom: 28 },
+  featuredContent: { paddingHorizontal: 20, gap: 12 },
   featuredCard: {
-    width: 120,
-    backgroundColor: Colors.white,
-    borderRadius: 18,
-    padding: 16,
-    alignItems: 'center',
+    width: 120, backgroundColor: Colors.white,
+    borderRadius: 18, padding: 16, alignItems: 'center',
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    shadowOpacity: 1, shadowRadius: 12, elevation: 3,
+    borderWidth: 1, borderColor: Colors.cardBorder,
   },
   featuredIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
+    width: 64, height: 64, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
-  featuredName: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  featuredTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  featuredTagText: {
-    fontSize: 11,
-    fontFamily: 'Inter_500Medium',
-  },
+  featuredName: { fontSize: 13, color: Colors.text, textAlign: 'center', marginBottom: 6 },
+  featuredTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  featuredTagText: { fontSize: 11 },
   recentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 14,
   },
-  seeAll: {
-    fontSize: 14,
-    fontFamily: 'Inter_500Medium',
-    color: Colors.primary,
-  },
-  loader: {
-    marginTop: 20,
-  },
+  seeAll: { fontSize: 14, color: Colors.primary },
+  loader: { marginTop: 20 },
   emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    alignItems: 'center', paddingVertical: 40,
+    backgroundColor: Colors.white, borderRadius: 20,
+    borderWidth: 1, borderColor: Colors.border,
   },
-  emptyText: {
-    fontSize: 17,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.textSecondary,
-    marginTop: 14,
-  },
-  emptySubText: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textMuted,
-    marginTop: 6,
-  },
+  emptyText: { fontSize: 17, color: Colors.textSecondary, marginTop: 14 },
+  emptySubText: { fontSize: 14, color: Colors.textMuted, marginTop: 6 },
   recentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 10,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.white, borderRadius: 16,
+    padding: 14, marginBottom: 10,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    shadowOpacity: 1, shadowRadius: 8, elevation: 2,
+    borderWidth: 1, borderColor: Colors.cardBorder,
   },
   recentImageWrapper: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    overflow: 'hidden',
-    marginRight: 14,
+    width: 56, height: 56, borderRadius: 14,
+    overflow: 'hidden', marginRight: 14,
   },
-  recentImage: {
-    width: '100%',
-    height: '100%',
-  },
+  recentImage: { width: '100%', height: '100%' },
   recentImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%', height: '100%',
+    alignItems: 'center', justifyContent: 'center',
   },
-  recentInfo: {
-    flex: 1,
-  },
-  recentName: {
-    fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.text,
-  },
-  recentScientific: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textMuted,
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
-  recentDate: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textMuted,
-    marginTop: 4,
-  },
+  recentInfo: { flex: 1 },
+  recentName: { fontSize: 15, color: Colors.text },
+  recentScientific: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic', marginTop: 2 },
+  recentDate: { fontSize: 11, color: Colors.textMuted, marginTop: 4 },
 });

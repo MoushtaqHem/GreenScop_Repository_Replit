@@ -13,37 +13,27 @@ import { setBaseUrl } from "@workspace/api-client-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
 import { PlantProvider } from "@/context/PlantContext";
+import { I18nProvider } from "@/context/I18nContext";
 
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
 SplashScreen.preventAutoHideAsync();
 
-// Suppress fontfaceobserver timeout errors globally on web so they never
-// crash the app. Fonts will fall back to system fonts gracefully.
 if (Platform.OS === "web" && typeof window !== "undefined") {
   const _origOnError = window.onerror;
   window.onerror = (msg, src, line, col, err) => {
-    if (typeof msg === "string" && msg.includes("timeout exceeded")) {
-      return true; // suppress
-    }
+    if (typeof msg === "string" && msg.includes("timeout exceeded")) return true;
     if (_origOnError) return _origOnError(msg, src, line, col, err);
     return false;
   };
   window.addEventListener("unhandledrejection", (event) => {
     const reason = event?.reason;
-    if (
-      reason &&
-      typeof reason.message === "string" &&
-      reason.message.includes("timeout exceeded")
-    ) {
+    if (reason && typeof reason.message === "string" && reason.message.includes("timeout exceeded")) {
       event.preventDefault();
     }
   });
 }
 
-// Kick off Ionicons font load immediately in the background.
-// This gives fontfaceobserver the best chance of succeeding before
-// any icon renders. Errors are swallowed — icons fall back gracefully.
 if (Platform.OS === "web") {
   Font.loadAsync(Ionicons.font).catch(() => {});
 }
@@ -69,15 +59,17 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <PlantProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </PlantProvider>
-          </AuthProvider>
+          <I18nProvider>
+            <AuthProvider>
+              <PlantProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </PlantProvider>
+            </AuthProvider>
+          </I18nProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

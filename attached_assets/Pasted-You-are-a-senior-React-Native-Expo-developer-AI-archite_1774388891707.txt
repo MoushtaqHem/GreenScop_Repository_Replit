@@ -1,0 +1,315 @@
+You are a senior React Native (Expo) developer, AI architect, and UI/UX expert.
+
+Build a fully dynamic AI-powered Plant Report Screen for the GreenScope AI mobile app.
+
+⚠️ IMPORTANT:
+This is an Expo React Native app (JavaScript or TypeScript).
+DO NOT use Flutter or Dart.
+
+--------------------------------------------------
+
+🎯 CORE REQUIREMENT
+
+The Plant Report Screen must be:
+
+✔ Fully dynamic (NOT static)
+✔ Render UI based on AI JSON response
+✔ Show/hide sections depending on plant type
+
+--------------------------------------------------
+
+🧠 AI LOGIC SYSTEM
+
+The app must classify plants into:
+
+- medicinal
+- edible
+- toxic
+- ornamental
+- desert
+- agricultural
+- herbs
+
+Based on classification:
+
+✔ Dynamically show/hide sections  
+✔ Change UI structure  
+✔ Modify warnings & recommendations  
+
+--------------------------------------------------
+
+📦 DATA STRUCTURE (MANDATORY)
+
+AI returns JSON like:
+
+{
+  "name": "Mint",
+  "scientific_name": "Mentha",
+  "confidence": 0.95,
+  "type": "medicinal",
+  "isEdible": true,
+  "isToxic": false,
+  "image": "url",
+  "sections": {
+    "nutrition": true,
+    "medicinal": true,
+    "toxicity": false
+  },
+  "care": {
+    "water": "Moderate",
+    "sunlight": "Partial",
+    "soil": "Moist",
+    "temperature": "15-25C",
+    "difficulty": "Easy"
+  }
+}
+
+--------------------------------------------------
+
+🎨 UI DESIGN SYSTEM
+
+Use:
+
+- Background: #F1F8E9
+- Primary: #2E7D32
+- Secondary: #66BB6A
+- Accent: #FFC107
+- Danger: #E57373
+
+Style:
+
+✔ Soft shadows  
+✔ Border radius (20px)  
+✔ Clean cards  
+✔ Smooth animations  
+
+--------------------------------------------------
+
+📱 MAIN COMPONENT
+
+Create:
+
+PlantReportScreen.js
+
+Use:
+
+- ScrollView
+- FlatList
+- Conditional Rendering
+
+--------------------------------------------------
+
+🟢 1. HERO SECTION
+
+- Image (ImageBackground)
+- Gradient overlay (expo-linear-gradient)
+- Plant name (Arabic)
+- Scientific name
+- Confidence %
+
+Actions:
+
+- Favorite
+- Share
+- Download
+- Delete
+
+--------------------------------------------------
+
+🟡 2. SMART ACTIONS
+
+Buttons:
+
+- Download PDF
+- Share
+- Copy Link
+
+--------------------------------------------------
+
+🧠 3. SMART TOOLS (DYNAMIC)
+
+Use conditional rendering:
+
+IF type === "indoor":
+- Show Light Meter
+- Show Humidity Guide
+
+IF type === "agricultural":
+- Show Yield Calculator
+- Show Irrigation Planner
+
+IF type === "medicinal":
+- Show Dosage Guide
+- Show Extraction Methods
+
+--------------------------------------------------
+
+🟢 4. HEALTH STATUS
+
+Dynamic badge:
+
+- Healthy
+- Needs Water
+- Toxic Warning
+- Disease Risk
+
+--------------------------------------------------
+
+🌿 5. CARE GUIDE
+
+Always visible:
+
+- Watering
+- Sunlight
+- Soil
+- Temperature
+- Difficulty
+
+--------------------------------------------------
+
+🔵 6. ADD TO GARDEN
+
+Save plant locally or to backend:
+
+- AsyncStorage or API
+
+--------------------------------------------------
+
+🟣 7. DYNAMIC SECTIONS
+
+⚠️ VERY IMPORTANT:
+Render only if enabled in JSON
+
+----------------------------------------
+
+📘 BOTANICAL DETAILS
+
+Show always if exists
+
+----------------------------------------
+
+🍎 NUTRITION (if sections.nutrition === true)
+
+Render table using FlatList:
+
+- Vitamin A
+- Vitamin C
+- Iron
+- Calcium
+
+----------------------------------------
+
+💊 MEDICINAL (if sections.medicinal === true)
+
+- فوائد طبية
+- مضاد التهاب
+- تقوية المناعة
+
+----------------------------------------
+
+⚠️ TOXICITY
+
+IF isToxic === true:
+
+- Show warning card (red)
+- Show symptoms
+- Toxic level
+
+ELSE:
+
+- Show "آمن للاستخدام"
+
+----------------------------------------
+
+🌍 ENVIRONMENT
+
+- Climate
+- Regions
+- Soil
+
+----------------------------------------
+
+🧪 USAGE METHODS
+
+Dynamic list:
+
+- Tea
+- Oil
+- Raw
+- Powder
+
+----------------------------------------
+
+🚨 ALERTS
+
+- Local warnings
+- Seasonal alerts
+
+----------------------------------------
+
+🌱 SOIL TOOL (MODAL)
+
+Create modal using:
+
+- react-native-modal
+
+Dynamic:
+
+- Soil type
+- PH level
+
+----------------------------------------
+
+🧮 CALCULATORS
+
+- Pot size calculator
+- Fertilizer calculator
+
+--------------------------------------------------
+
+⚙️ IMPLEMENTATION RULES
+
+✔ Use functional components  
+✔ Use hooks (useState, useEffect)  
+✔ Use conditional rendering (&&)  
+✔ Use reusable components  
+
+--------------------------------------------------
+
+📦 REQUIRED PACKAGES
+
+expo install:
+
+- expo-linear-gradient
+- react-native-reanimated
+- react-native-gesture-handler
+- react-native-modal
+
+--------------------------------------------------
+
+🌍 RTL SUPPORT
+
+Use:
+
+I18nManager.forceRTL(true)
+
+Text must support Arabic layout
+
+--------------------------------------------------
+
+⚡ PERFORMANCE
+
+✔ Lazy render sections  
+✔ Cache AI result  
+✔ Optimize images  
+
+--------------------------------------------------
+
+🎯 FINAL RESULT
+
+A smart AI screen that:
+
+✔ Adapts based on plant type  
+✔ Shows only relevant sections  
+✔ Feels like real AI assistant  
+✔ Looks premium (better than PictureThis)  

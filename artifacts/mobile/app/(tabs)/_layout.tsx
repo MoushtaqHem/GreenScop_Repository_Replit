@@ -5,38 +5,41 @@ import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { useAuth } from "@/context/AuthContext";
+import { useI18n } from "@/context/I18nContext";
 import Colors from "@/constants/colors";
 
 function NativeTabLayout() {
+  const { t } = useI18n();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Home</Label>
+        <Label>{t('tabHome')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="garden">
         <Icon sf={{ default: "leaf", selected: "leaf.fill" }} />
-        <Label>Garden</Label>
+        <Label>{t('tabGarden')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="scan">
         <Icon sf={{ default: "camera", selected: "camera.fill" }} />
-        <Label>Scan</Label>
+        <Label>{t('tabScan')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="favorites">
         <Icon sf={{ default: "heart", selected: "heart.fill" }} />
-        <Label>Favorites</Label>
+        <Label>{t('tabFavorites')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="settings">
         <Icon sf={{ default: "gearshape", selected: "gearshape.fill" }} />
-        <Label>Settings</Label>
+        <Label>{t('tabSettings')}</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
 
 function ClassicTabLayout() {
+  const { t } = useI18n();
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
@@ -56,18 +59,11 @@ function ClassicTabLayout() {
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={80}
-              tint="light"
-              style={StyleSheet.absoluteFill}
-            />
+            <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
-            <View
-              style={[StyleSheet.absoluteFill, { backgroundColor: Colors.white }]}
-            />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.white }]} />
           ) : null,
         tabBarLabelStyle: {
-          fontFamily: "Inter_500Medium",
           fontSize: 11,
         },
       }}
@@ -75,7 +71,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t('tabHome'),
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="house" tintColor={color} size={24} />
@@ -87,7 +83,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="garden"
         options={{
-          title: "Garden",
+          title: t('tabGarden'),
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="leaf" tintColor={color} size={24} />
@@ -99,7 +95,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="scan"
         options={{
-          title: "Scan",
+          title: t('tabScan'),
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="camera" tintColor={color} size={24} />
@@ -111,7 +107,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="favorites"
         options={{
-          title: "Favorites",
+          title: t('tabFavorites'),
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="heart" tintColor={color} size={24} />
@@ -123,7 +119,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: t('tabSettings'),
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="gearshape" tintColor={color} size={24} />

@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
 import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 
@@ -23,6 +24,7 @@ interface SettingRowProps {
   onPress?: () => void;
   rightElement?: React.ReactNode;
   destructive?: boolean;
+  isRTL?: boolean;
 }
 
 function SettingRow({
@@ -33,10 +35,11 @@ function SettingRow({
   onPress,
   rightElement,
   destructive = false,
+  isRTL = false,
 }: SettingRowProps) {
   return (
     <TouchableOpacity
-      style={styles.row}
+      style={[styles.row, isRTL && styles.rowRTL]}
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       disabled={!onPress && !rightElement}
@@ -45,13 +48,13 @@ function SettingRow({
         <Ionicons name={icon as never} size={20} color={iconColor} />
       </View>
       <View style={styles.rowContent}>
-        <Text style={[styles.rowLabel, destructive && styles.rowLabelDestructive]}>
+        <Text style={[styles.rowLabel, destructive && styles.rowLabelDestructive, isRTL && styles.textRTL]}>
           {label}
         </Text>
-        {sublabel && <Text style={styles.rowSublabel}>{sublabel}</Text>}
+        {sublabel && <Text style={[styles.rowSublabel, isRTL && styles.textRTL]}>{sublabel}</Text>}
       </View>
       {rightElement || (
-        onPress && <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+        onPress && <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={18} color={Colors.textMuted} />
       )}
     </TouchableOpacity>
   );
@@ -59,16 +62,17 @@ function SettingRow({
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
+  const { t, lang, setLang, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const webTopPad = Platform.OS === 'web' ? 67 : 0;
 
   const handleLogout = () => {
-    Alert.alert('Sign out?', 'You will need to sign in again to use GreenScope AI.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('signOutTitle'), t('signOutDesc'), [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: 'Sign out',
+        text: t('signOut'),
         style: 'destructive',
         onPress: async () => {
           await logout();
@@ -76,6 +80,10 @@ export default function SettingsScreen() {
         },
       },
     ]);
+  };
+
+  const handleLanguageToggle = () => {
+    setLang(lang === 'en' ? 'ar' : 'en');
   };
 
   return (
@@ -87,29 +95,30 @@ export default function SettingsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Settings</Text>
+        <Text style={[styles.title, isRTL && styles.textRTL]}>{t('settings')}</Text>
 
         {/* Profile Section */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, isRTL && styles.rowRTL]}>
           <View style={styles.profileAvatar}>
             <Ionicons name="person" size={32} color={Colors.primary} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>
+            <Text style={[styles.profileName, isRTL && styles.textRTL]}>
               {user?.email?.split('@')[0] ?? 'Plant Explorer'}
             </Text>
-            <Text style={styles.profileEmail}>{user?.email}</Text>
+            <Text style={[styles.profileEmail, isRTL && styles.textRTL]}>{user?.email}</Text>
           </View>
         </View>
 
         {/* Preferences */}
-        <Text style={styles.sectionLabel}>Preferences</Text>
+        <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('preferences')}</Text>
         <View style={styles.group}>
           <SettingRow
             icon="moon-outline"
             iconColor="#5C6BC0"
-            label="Dark Mode"
-            sublabel="Coming soon"
+            label={t('darkMode')}
+            sublabel={t('comingSoon')}
+            isRTL={isRTL}
             rightElement={
               <Switch
                 value={darkMode}
@@ -123,7 +132,8 @@ export default function SettingsScreen() {
           <SettingRow
             icon="notifications-outline"
             iconColor="#FF7043"
-            label="Notifications"
+            label={t('notifications')}
+            isRTL={isRTL}
             rightElement={
               <Switch
                 value={notifications}
@@ -137,48 +147,59 @@ export default function SettingsScreen() {
           <SettingRow
             icon="language-outline"
             iconColor="#00ACC1"
-            label="Language"
-            sublabel="English"
+            label={t('language')}
+            sublabel={lang === 'en' ? 'English' : 'العربية'}
+            isRTL={isRTL}
+            onPress={handleLanguageToggle}
+            rightElement={
+              <View style={styles.langBadge}>
+                <Text style={styles.langBadgeText}>{lang === 'en' ? 'AR' : 'EN'}</Text>
+              </View>
+            }
           />
         </View>
 
         {/* About */}
-        <Text style={styles.sectionLabel}>About</Text>
+        <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('about')}</Text>
         <View style={styles.group}>
           <SettingRow
             icon="leaf-outline"
             iconColor={Colors.primary}
-            label="About GreenScope AI"
-            sublabel="Version 1.0.0"
+            label={t('aboutApp')}
+            sublabel={t('version')}
+            isRTL={isRTL}
           />
           <View style={styles.separator} />
           <SettingRow
             icon="sparkles-outline"
             iconColor="#F57F17"
-            label="AI Model"
+            label={t('aiModel')}
             sublabel="Gemini 2.5 Flash"
+            isRTL={isRTL}
           />
           <View style={styles.separator} />
           <SettingRow
             icon="shield-checkmark-outline"
             iconColor="#43A047"
-            label="Privacy Policy"
+            label={t('privacyPolicy')}
+            isRTL={isRTL}
           />
         </View>
 
         {/* Account */}
-        <Text style={styles.sectionLabel}>Account</Text>
+        <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('account')}</Text>
         <View style={styles.group}>
           <SettingRow
             icon="log-out-outline"
             iconColor={Colors.error}
-            label="Sign out"
+            label={t('signOut')}
             destructive
+            isRTL={isRTL}
             onPress={handleLogout}
           />
         </View>
 
-        <Text style={styles.footer}>GreenScope AI · Powered by Gemini</Text>
+        <Text style={styles.footer}>{t('footer')}</Text>
       </ScrollView>
     </View>
   );
@@ -194,9 +215,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontFamily: 'Inter_700Bold',
     color: Colors.text,
     marginBottom: 24,
+  },
+  textRTL: {
+    textAlign: 'right',
   },
   profileCard: {
     flexDirection: 'row',
@@ -214,6 +237,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.cardBorder,
   },
+  rowRTL: {
+    flexDirection: 'row-reverse',
+  },
   profileAvatar: {
     width: 64,
     height: 64,
@@ -227,19 +253,16 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 18,
-    fontFamily: 'Inter_700Bold',
     color: Colors.text,
     textTransform: 'capitalize',
   },
   profileEmail: {
     fontSize: 13,
-    fontFamily: 'Inter_400Regular',
     color: Colors.textMuted,
     marginTop: 4,
   },
   sectionLabel: {
     fontSize: 12,
-    fontFamily: 'Inter_600SemiBold',
     color: Colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -278,7 +301,6 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     fontSize: 15,
-    fontFamily: 'Inter_500Medium',
     color: Colors.text,
   },
   rowLabelDestructive: {
@@ -286,7 +308,6 @@ const styles = StyleSheet.create({
   },
   rowSublabel: {
     fontSize: 12,
-    fontFamily: 'Inter_400Regular',
     color: Colors.textMuted,
     marginTop: 2,
   },
@@ -298,8 +319,18 @@ const styles = StyleSheet.create({
   footer: {
     textAlign: 'center',
     fontSize: 12,
-    fontFamily: 'Inter_400Regular',
     color: Colors.textMuted,
     paddingTop: 8,
+  },
+  langBadge: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  langBadgeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
