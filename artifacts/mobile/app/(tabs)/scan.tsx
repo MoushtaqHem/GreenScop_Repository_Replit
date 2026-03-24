@@ -22,13 +22,31 @@ import Colors from '@/constants/colors';
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 
 async function uriToBase64(uri: string): Promise<string> {
-  const response = await fetch(uri);
-  const blob = await response.blob();
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const MAX = 800;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) {
+          height = Math.round((height * MAX) / width);
+          width = MAX;
+        } else {
+          width = Math.round((width * MAX) / height);
+          height = MAX;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas unavailable')); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = reject;
+    img.src = uri;
   });
 }
 
@@ -50,14 +68,16 @@ export default function ScanScreen() {
       }
       result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
-        quality: 0.6,
+        quality: 0.4,
         base64: true,
+        exif: false,
       });
     } else {
       result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        quality: 0.6,
+        quality: 0.4,
         base64: true,
+        exif: false,
       });
     }
 
