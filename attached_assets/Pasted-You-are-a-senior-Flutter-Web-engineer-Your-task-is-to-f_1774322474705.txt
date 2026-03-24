@@ -1,0 +1,101 @@
+You are a senior Flutter Web engineer.
+
+Your task is to fix a critical startup crash in a Flutter Web application caused by font loading timeout (FontFaceObserver 6000ms error).
+
+--------------------------------------------------
+
+🎯 GOAL
+
+Modify the file:
+
+web/index.html
+
+To completely remove any blocking font loading and ensure the app loads instantly without waiting for external fonts.
+
+--------------------------------------------------
+
+🛠 REQUIRED CHANGES
+
+1. REMOVE ALL EXTERNAL FONT LOADING
+
+Find and DELETE any lines that include:
+
+- fontfaceobserver
+- fonts.googleapis.com
+- fonts.gstatic.com
+
+Examples to remove:
+
+<script src="https://cdnjs.cloudflare.com/.../fontfaceobserver.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo..." rel="stylesheet">
+
+--------------------------------------------------
+
+2. REMOVE ANY FONT LOADING SCRIPTS
+
+Delete any JavaScript code that:
+
+- Uses FontFaceObserver
+- Waits for fonts to load
+- Uses document.fonts.load
+
+--------------------------------------------------
+
+3. ADD SAFE LOCAL FONT FALLBACK
+
+Inside the <head> section, add this:
+
+<style>
+  body {
+    font-family: Arial, sans-serif !important;
+  }
+</style>
+
+--------------------------------------------------
+
+4. ENSURE FLUTTER LOADS IMMEDIATELY
+
+Find this section:
+
+<script>
+  window.addEventListener('load', function(ev) {
+    ...
+  });
+</script>
+
+Make sure:
+
+- There is NO font loading before Flutter starts
+- There is NO Promise or delay related to fonts
+
+--------------------------------------------------
+
+5. DO NOT MODIFY FLUTTER CORE SCRIPTS
+
+Keep:
+
+flutter.js
+main.dart.js
+
+But ensure they are not blocked by font loading
+
+--------------------------------------------------
+
+6. FINAL CHECK
+
+After modifications:
+
+✔ No reference to FontFaceObserver  
+✔ No Google Fonts links  
+✔ No external font dependencies  
+✔ App starts immediately  
+
+--------------------------------------------------
+
+🎯 EXPECTED RESULT
+
+- Fix "6000ms timeout exceeded"
+- App loads without white screen
+- No crash on startup
+- Flutter UI renders normally
