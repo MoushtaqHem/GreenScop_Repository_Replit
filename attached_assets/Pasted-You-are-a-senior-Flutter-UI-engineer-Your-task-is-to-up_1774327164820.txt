@@ -1,0 +1,127 @@
+You are a senior Flutter UI engineer.
+
+Your task is to upgrade the typography system of the app by replacing Cairo font with modern Arabic fonts similar to Cairo.
+
+--------------------------------------------------
+
+🎯 GOAL
+
+Improve UI readability and modern look using professional Arabic fonts.
+
+--------------------------------------------------
+
+🧩 REQUIRED FONTS
+
+Download and integrate the following fonts:
+
+1. Tajawal
+2. Almarai
+3. Noto Sans Arabic
+4. IBM Plex Sans Arabic
+
+--------------------------------------------------
+
+📦 STEP 1: ADD FONTS TO PROJECT
+
+Create folder:
+
+assets/fonts/
+
+Download fonts from Google Fonts and add:
+
+Tajawal-Regular.ttf
+Tajawal-Bold.ttf
+
+Almarai-Regular.ttf
+Almarai-Bold.ttf
+
+NotoSansArabic-Regular.ttf
+NotoSansArabic-Bold.ttf
+
+IBMPlexSansArabic-Regular.ttf
+IBMPlexSansArabic-Bold.ttf
+
+--------------------------------------------------
+
+📄 STEP 2: UPDATE pubspec.yaml
+
+Add:
+
+flutter:
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+
+    - family: Almarai
+      fonts:
+        - asset: assets/fonts/Almarai-Regular.ttf
+        - asset: assets/fonts/Almarai-Bold.ttf
+          weight: 700
+
+    - family: NotoArabic
+      fonts:
+        - asset: assets/fonts/NotoSansArabic-Regular.ttf
+        - asset: assets/fonts/NotoSansArabic-Bold.ttf
+          weight: 700
+
+    - family: PlexArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
+
+--------------------------------------------------
+
+🎨 STEP 3: APPLY GLOBAL THEME
+
+In main.dart:
+
+ThemeData(
+  fontFamily: 'Tajawal',
+  textTheme: TextTheme(
+    headlineLarge: TextStyle(fontFamily: 'Tajawal', fontWeight: FontWeight.bold),
+    bodyLarge: TextStyle(fontFamily: 'NotoArabic'),
+    bodyMedium: TextStyle(fontFamily: 'NotoArabic'),
+    labelLarge: TextStyle(fontFamily: 'Almarai'),
+  ),
+)
+
+--------------------------------------------------
+
+📱 STEP 4: APPLY IN UI
+
+- Titles → Tajawal Bold
+- Body Text → Noto Arabic
+- Reports → Almarai
+- Buttons → Tajawal
+
+--------------------------------------------------
+
+🌙 STEP 5: ENSURE RTL SUPPORT
+
+Make sure:
+
+Directionality(
+  textDirection: TextDirection.rtl,
+)
+
+--------------------------------------------------
+
+⚡ PERFORMANCE
+
+- Use font caching
+- Avoid loading unused fonts
+- Optimize rendering
+
+--------------------------------------------------
+
+🎯 RESULT
+
+✔ Modern Arabic UI
+✔ Better readability
+✔ Professional look
+✔ Smooth rendering
+✔ Compatible with RTL
