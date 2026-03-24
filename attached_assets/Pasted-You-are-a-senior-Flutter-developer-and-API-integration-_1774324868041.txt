@@ -1,0 +1,115 @@
+You are a senior Flutter developer and API integration expert.
+
+Your task is to replace the existing AI API key in the project with a new API key and ensure it is correctly used in all API requests.
+
+--------------------------------------------------
+
+🎯 NEW API KEY
+
+Use this API key:
+
+2b10k4eCe2STVheqHIYB83Fs
+
+--------------------------------------------------
+
+🛠 REQUIRED TASKS
+
+1. FIND OLD API KEY
+
+Search the entire project for:
+
+- Any hardcoded API keys
+- Any environment variables
+- Any config files
+
+Examples:
+apiKey = "OLD_KEY"
+Authorization: Bearer OLD_KEY
+
+--------------------------------------------------
+
+2. REPLACE WITH NEW KEY
+
+Replace ALL occurrences with:
+
+2b10k4eCe2STVheqHIYB83Fs
+
+--------------------------------------------------
+
+3. UPDATE API SERVICE FILE
+
+Locate file like:
+
+api_service.dart
+or
+plant_service.dart
+
+Ensure API call uses the new key:
+
+headers: {
+  "Authorization": "Bearer 2b10k4eCe2STVheqHIYB83Fs",
+  "Content-Type": "application/json"
+}
+
+OR (if query param):
+
+https://api.example.com/identify?api_key=2b10k4eCe2STVheqHIYB83Fs
+
+--------------------------------------------------
+
+4. ENSURE KEY IS USED IN IMAGE REQUEST
+
+If using multipart:
+
+request.headers['Authorization'] = 'Bearer 2b10k4eCe2STVheqHIYB83Fs';
+
+--------------------------------------------------
+
+5. ADD DEBUG LOG
+
+Before request:
+
+print("Using API KEY: 2b10k4eCe2STVheqHIYB83Fs");
+
+--------------------------------------------------
+
+6. HANDLE INVALID KEY ERROR
+
+If API returns 401 or 403:
+
+Show message:
+
+"Invalid API key or access denied"
+
+--------------------------------------------------
+
+7. OPTIONAL (BEST PRACTICE)
+
+Move API key to a constant file:
+
+lib/core/constants/api_keys.dart
+
+const String API_KEY = "2b10k4eCe2STVheqHIYB83Fs";
+
+Then use:
+
+Authorization: Bearer $API_KEY
+
+--------------------------------------------------
+
+8. TEST AFTER UPDATE
+
+Ensure:
+
+✔ API request is successful  
+✔ Response is returned  
+✔ Plant result is displayed  
+
+--------------------------------------------------
+
+🎯 FINAL RESULT
+
+- Old API key fully replaced  
+- New key correctly integrated  
+- API requests working  
+- Identify Plant returns results successfully  
