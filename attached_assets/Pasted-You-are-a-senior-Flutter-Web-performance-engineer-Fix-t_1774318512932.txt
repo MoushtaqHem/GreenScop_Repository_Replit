@@ -1,0 +1,109 @@
+You are a senior Flutter + Web performance engineer.
+
+Fix the application crash caused by:
+
+"6000ms timeout exceeded (FontFaceObserver)"
+
+The app is running in Flutter Web (Replit environment).
+
+--------------------------------------------------
+
+🚨 PROBLEM
+
+The app fails during startup because:
+
+- Custom fonts (like Cairo or Google Fonts) are not loading
+- FontFaceObserver times out after 6000ms
+- This blocks app initialization
+
+--------------------------------------------------
+
+✅ REQUIRED FIXES
+
+1. REMOVE dependency on external font loading
+
+❌ Do NOT use Google Fonts via network
+✔ Use LOCAL bundled fonts instead
+
+--------------------------------------------------
+
+2. ADD LOCAL FONT (CAIRO)
+
+Download Cairo font files and add to project:
+
+assets/fonts/Cairo-Regular.ttf
+assets/fonts/Cairo-Bold.ttf
+
+Update pubspec.yaml:
+
+flutter:
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+        - asset: assets/fonts/Cairo-Bold.ttf
+
+--------------------------------------------------
+
+3. APPLY SAFE FALLBACK FONT
+
+In MaterialApp:
+
+theme: ThemeData(
+  fontFamily: 'Cairo',
+),
+
+Also ensure fallback:
+
+fontFamilyFallback: ['Roboto', 'Arial', 'sans-serif']
+
+--------------------------------------------------
+
+4. DISABLE FontFaceObserver (WEB)
+
+If using any JS or plugin that uses FontFaceObserver:
+
+- Remove it completely
+OR
+- Increase timeout to 15000ms
+OR
+- Wrap in try/catch and ignore failure
+
+--------------------------------------------------
+
+5. PREVENT APP BLOCKING
+
+Ensure app does NOT wait for fonts before rendering UI
+
+Use:
+
+WidgetsFlutterBinding.ensureInitialized();
+
+Then runApp immediately
+
+--------------------------------------------------
+
+6. ADD LOADING FALLBACK UI
+
+If fonts fail:
+
+- Show app anyway
+- Use default system fonts
+
+--------------------------------------------------
+
+7. OPTIMIZE FOR REPLIT WEB
+
+- Avoid external CDN calls
+- Bundle all assets locally
+- Minimize blocking scripts
+
+--------------------------------------------------
+
+🎯 RESULT
+
+- App starts instantly
+- No timeout errors
+- Fonts load locally
+- UI renders even if font fails
+- No white screen
