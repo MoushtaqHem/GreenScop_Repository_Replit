@@ -1,0 +1,175 @@
+You are a senior Flutter engineer and AI integration expert.
+
+Fix the issue where clicking "Identify Plant" shows loading but NO result appears.
+
+--------------------------------------------------
+
+🚨 PROBLEM
+
+- User selects image
+- Clicks "Identify Plant"
+- Loading spinner appears
+- No result is displayed
+
+--------------------------------------------------
+
+🎯 GOAL
+
+Ensure that:
+
+✔ Image is processed correctly  
+✔ API request is sent  
+✔ Response is received  
+✔ Result is displayed in UI  
+
+--------------------------------------------------
+
+🛠 REQUIRED FIXES
+
+1. VALIDATE IMAGE BEFORE API CALL
+
+Before sending request:
+
+if (image == null) {
+  showError("Please select an image first");
+  return;
+}
+
+--------------------------------------------------
+
+2. ADD DEBUG LOGGING (VERY IMPORTANT)
+
+Before API call:
+
+print("Sending image to API...");
+
+After response:
+
+print("API Response: $response");
+
+On error:
+
+print("Error: $e");
+
+--------------------------------------------------
+
+3. FIX ASYNC HANDLING
+
+Ensure correct use of async/await:
+
+Future<void> identifyPlant() async {
+  try {
+    setState(() {
+      isLoading = true;
+    });
+
+    final result = await apiService.identify(imageFile);
+
+    setState(() {
+      plantResult = result;
+      isLoading = false;
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlantReportScreen(result: result),
+      ),
+    );
+
+  } catch (e) {
+    setState(() {
+      isLoading = false;
+    });
+    showError("Failed to analyze image");
+  }
+}
+
+--------------------------------------------------
+
+4. FIX API SERVICE
+
+Ensure API returns valid JSON:
+
+Future<Map<String, dynamic>> identify(File image) async {
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse("YOUR_API_URL"),
+  );
+
+  request.files.add(
+    await http.MultipartFile.fromPath('image', image.path),
+  );
+
+  final response = await request.send();
+  final resBody = await response.stream.bytesToString();
+
+  return jsonDecode(resBody);
+}
+
+--------------------------------------------------
+
+5. HANDLE EMPTY RESPONSE
+
+If API returns empty:
+
+if (result == null || result.isEmpty) {
+  showError("No plant detected");
+  return;
+}
+
+--------------------------------------------------
+
+6. DISPLAY RESULT IN UI
+
+Ensure navigation happens AFTER data is ready
+
+PlantReportScreen must receive data:
+
+class PlantReportScreen extends StatelessWidget {
+  final Map result;
+
+  const PlantReportScreen({required this.result});
+
+--------------------------------------------------
+
+7. ADD LOADING INDICATOR CONTROL
+
+Ensure:
+
+✔ isLoading = true BEFORE request  
+✔ isLoading = false AFTER response  
+
+--------------------------------------------------
+
+8. ADD INTERNET CHECK
+
+If no internet:
+
+showError("No internet connection");
+
+--------------------------------------------------
+
+9. ADD FALLBACK (VERY IMPORTANT)
+
+If API fails:
+
+Return mock data:
+
+{
+  "name": "Unknown Plant",
+  "scientific_name": "N/A",
+  "description": "No data available",
+  "benefits": "N/A",
+  "care": "N/A"
+}
+
+--------------------------------------------------
+
+🎯 FINAL RESULT
+
+✔ Button works  
+✔ API is called  
+✔ Data is received  
+✔ Report screen opens  
+✔ No silent failure  

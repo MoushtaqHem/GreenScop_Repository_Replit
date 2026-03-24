@@ -21,6 +21,17 @@ import Colors from '@/constants/colors';
 
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 
+async function uriToBase64(uri: string): Promise<string> {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 export default function ScanScreen() {
   const { user } = useAuth();
   const { setCurrentReport } = usePlant();
@@ -55,27 +66,56 @@ export default function ScanScreen() {
       setImageUri(asset.uri);
       if (asset.base64) {
         setImageBase64(`data:image/jpeg;base64,${asset.base64}`);
+      } else {
+        setImageBase64(null);
       }
     }
   };
 
   const analyzeImage = async () => {
-    if (!imageBase64 || !user) return;
+    if (!user) {
+      Alert.alert('Sign in required', 'Please sign in to identify plants', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign In', onPress: () => router.push('/auth') },
+      ]);
+      return;
+    }
+
+    if (!imageUri) {
+      Alert.alert('No image', 'Please select a photo first');
+      return;
+    }
+
     setAnalyzing(true);
     try {
+      let base64 = imageBase64;
+
+      if (!base64) {
+        try {
+          base64 = await uriToBase64(imageUri);
+        } catch {
+          Alert.alert('Image error', 'Could not read the selected image. Please try again.');
+          return;
+        }
+      }
+
       const res = await fetch(`${BASE_URL}/api/plants/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64, userId: user.userId }),
+        body: JSON.stringify({ imageBase64: base64, userId: user.userId }),
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Analysis failed');
+        let errMsg = 'Analysis failed';
+        try {
+          const err = await res.json();
+          errMsg = err.error || errMsg;
+        } catch {}
+        throw new Error(errMsg);
       }
 
       const report = await res.json();
-      setCurrentReport({ ...report, imageBase64 });
+      setCurrentReport({ ...report, imageBase64: base64 });
       router.push('/report');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Could not analyze plant';
