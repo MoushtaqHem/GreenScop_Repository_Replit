@@ -1,0 +1,152 @@
+You are a senior Flutter developer and localization expert.
+
+Your task is to add FULL Arabic language support to a plant identification Flutter app.
+
+--------------------------------------------------
+
+🎯 GOAL
+
+Enable the app to:
+
+✔ Display UI in Arabic (RTL)  
+✔ Translate plant reports into Arabic  
+✔ Support Arabic + English switching  
+✔ Ensure clean UX with Arabic typography  
+
+--------------------------------------------------
+
+🛠 PART 1: ADD LOCALIZATION (UI TEXT)
+
+1. ADD dependencies:
+
+flutter_localizations:
+  sdk: flutter
+intl: ^0.18.0
+
+--------------------------------------------------
+
+2. UPDATE MaterialApp
+
+MaterialApp(
+  locale: Locale('ar'),
+  supportedLocales: [
+    Locale('en'),
+    Locale('ar'),
+  ],
+  localizationsDelegates: [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+);
+
+--------------------------------------------------
+
+3. ENABLE RTL SUPPORT
+
+Wrap app with Directionality:
+
+direction: TextDirection.rtl
+
+OR use:
+
+locale: Locale('ar')
+
+--------------------------------------------------
+
+4. TRANSLATE UI TEXT
+
+Replace static text:
+
+"Identify Plant" → "تحليل النبات"  
+"Search" → "بحث"  
+"Favorites" → "المفضلة"  
+"Settings" → "الإعدادات"
+
+--------------------------------------------------
+
+🛠 PART 2: TRANSLATE AI RESPONSE (IMPORTANT)
+
+Modify API request to force Arabic response.
+
+When sending request to AI API:
+
+Add instruction in prompt:
+
+"Respond ONLY in Arabic language. Provide plant report in Arabic."
+
+--------------------------------------------------
+
+Example request body:
+
+{
+  "prompt": "Analyze this plant image and return a detailed report in Arabic including name, description, benefits, and care instructions."
+}
+
+--------------------------------------------------
+
+🛠 PART 3: HANDLE TRANSLATION (FALLBACK)
+
+If API returns English:
+
+Use translation step:
+
+final translated = await translateToArabic(result);
+
+OR integrate translation API.
+
+--------------------------------------------------
+
+🛠 PART 4: FORMAT REPORT IN ARABIC
+
+Update UI:
+
+- Align text to RIGHT
+- Use RTL layout
+- Use Arabic labels:
+
+Plant Name → اسم النبات  
+Scientific Name → الاسم العلمي  
+Description → الوصف  
+Benefits → الفوائد  
+Care → طريقة العناية  
+
+--------------------------------------------------
+
+🛠 PART 5: USE ARABIC FONT
+
+Add local font:
+
+Cairo or Tajawal
+
+pubspec.yaml:
+
+fonts:
+  - family: Cairo
+    fonts:
+      - asset: assets/fonts/Cairo-Regular.ttf
+
+--------------------------------------------------
+
+🛠 PART 6: LANGUAGE SWITCHER
+
+In Settings screen:
+
+Add toggle:
+
+Arabic / English
+
+When user switches:
+
+update locale dynamically
+
+--------------------------------------------------
+
+🎯 FINAL RESULT
+
+✔ Full Arabic UI  
+✔ RTL layout  
+✔ AI results in Arabic  
+✔ Clean Arabic typography  
+✔ Language switch support  
+✔ Professional UX  
