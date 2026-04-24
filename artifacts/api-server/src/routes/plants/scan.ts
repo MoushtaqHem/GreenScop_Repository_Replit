@@ -21,28 +21,54 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    const prompt = `You are a plant identification expert. Analyze the plant in this image and provide a detailed report.
+    const prompt = `You are an expert botanist. Analyze the plant in this image and produce a thorough Arabic-friendly report.
 
-Return ONLY valid JSON with this exact structure (no markdown, no code blocks):
+Return ONLY valid JSON (no markdown, no code fences) with this EXACT structure. All textual values MUST be in Arabic except scientific_name.
+
 {
-  "name": "Common Name",
-  "scientific_name": "Scientific Name",
-  "description": "Detailed description of the plant in 2-3 sentences",
-  "benefits": "Health and ecological benefits in 2-3 sentences",
-  "care": "Care instructions including watering, sunlight, soil needs in 2-3 sentences",
+  "name": "الاسم الشائع بالعربية",
+  "scientific_name": "Latin scientific name",
+  "description": "وصف نباتي مفصّل (3-4 جمل) عن الشكل والأوراق والأزهار.",
+  "benefits": "الفوائد الطبية والصحية والبيئية باختصار (2-3 جمل).",
+  "care": "تعليمات العناية: الري، الإضاءة، التربة، الحرارة (2-3 جمل).",
+  "distribution": "المناطق الجغرافية الأساسية لانتشار النبات حول العالم (1-2 جملة).",
+  "usage_methods": ["طريقة استخدام 1", "طريقة استخدام 2", "طريقة استخدام 3"],
+  "medical_benefits": ["فائدة طبية 1", "فائدة طبية 2", "فائدة طبية 3"],
   "nutrition": [
-    { "name": "Vitamin A", "amount": "XXX mcg", "percentage": "XX%" },
-    { "name": "Vitamin C", "amount": "XXX mg", "percentage": "XX%" },
-    { "name": "Vitamin E", "amount": "X.X mg", "percentage": "XX%" },
-    { "name": "Calcium", "amount": "XXX mg", "percentage": "XX%" },
-    { "name": "Iron", "amount": "X.X mg", "percentage": "XX%" },
-    { "name": "Magnesium", "amount": "XXX mg", "percentage": "XX%" },
-    { "name": "Potassium", "amount": "XXX mg", "percentage": "XX%" }
-  ]
+    { "name": "فيتامين A", "amount": "XXX mcg", "percentage": "XX%" },
+    { "name": "فيتامين C", "amount": "XXX mg", "percentage": "XX%" },
+    { "name": "فيتامين E", "amount": "X.X mg", "percentage": "XX%" },
+    { "name": "كالسيوم", "amount": "XXX mg", "percentage": "XX%" },
+    { "name": "حديد", "amount": "X.X mg", "percentage": "XX%" },
+    { "name": "مغنيسيوم", "amount": "XXX mg", "percentage": "XX%" },
+    { "name": "بوتاسيوم", "amount": "XXX mg", "percentage": "XX%" }
+  ],
+  "warnings": {
+    "risk_level": "Low | Medium | High",
+    "summary": "ملخص قصير عن خطورة النبات.",
+    "symptoms": ["عرض 1", "عرض 2"],
+    "child_safety": "آمن | حذر | غير آمن",
+    "pet_safety": "آمن | حذر | غير آمن",
+    "child_note": "ملاحظة للأطفال.",
+    "pet_note": "ملاحظة للحيوانات الأليفة."
+  },
+  "soil_helper": {
+    "title": "وصفة التربة المثالية",
+    "ingredients": [
+      { "name": "بيتموس", "parts": "2 أجزاء" },
+      { "name": "بيرلايت", "parts": "1 جزء" },
+      { "name": "لحاء صنوبر", "parts": "1 جزء" },
+      { "name": "كومبوست", "parts": "1 جزء" }
+    ],
+    "ph_range": "6.0 - 6.5",
+    "moisture_tip": "حافظ على رطوبة التربة دون إغراق.",
+    "watering_tip": "اترك مسافة 2 سم من سطح التربة لتسهيل الري.",
+    "drainage_tip": "ضع طبقة من الحصى في قاع الأصيص لمنع انسداد الفتحات."
+  },
+  "community_alerts": ["تنبيه محلي 1", "تنبيه محلي 2"]
 }
 
-If this is not a plant or you cannot identify it, return:
-{"error": "Could not identify plant in image"}`;
+If this is not a plant or you cannot identify it, return ONLY: {"error": "Could not identify plant in image"}`;
 
     const imageData = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
@@ -104,6 +130,12 @@ If this is not a plant or you cannot identify it, return:
       benefits: parsed.benefits,
       care: parsed.care,
       nutrition: parsed.nutrition,
+      distribution: parsed.distribution,
+      usageMethods: parsed.usage_methods,
+      medicalBenefits: parsed.medical_benefits,
+      warnings: parsed.warnings,
+      soilHelper: parsed.soil_helper,
+      communityAlerts: parsed.community_alerts,
       imageBase64: imageBase64.length > 500000 ? undefined : imageBase64,
       createdAt: new Date().toISOString(),
     });

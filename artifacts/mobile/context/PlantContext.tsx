@@ -6,6 +6,30 @@ export interface NutritionItem {
   percentage: string;
 }
 
+export interface SoilIngredient {
+  name: string;
+  parts: string;
+}
+
+export interface SoilHelper {
+  title?: string;
+  ingredients?: SoilIngredient[];
+  ph_range?: string;
+  moisture_tip?: string;
+  watering_tip?: string;
+  drainage_tip?: string;
+}
+
+export interface PlantWarnings {
+  risk_level?: 'Low' | 'Medium' | 'High' | string;
+  summary?: string;
+  symptoms?: string[];
+  child_safety?: string;
+  pet_safety?: string;
+  child_note?: string;
+  pet_note?: string;
+}
+
 export interface PlantReport {
   id: string;
   name: string;
@@ -16,6 +40,12 @@ export interface PlantReport {
   nutrition: NutritionItem[];
   imageBase64?: string;
   createdAt: string;
+  distribution?: string;
+  usageMethods?: string[];
+  medicalBenefits?: string[];
+  warnings?: PlantWarnings;
+  soilHelper?: SoilHelper;
+  communityAlerts?: string[];
 }
 
 export interface SavedPlant {
