@@ -29,7 +29,7 @@ export default function AuthScreen() {
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing fields', 'Please enter email and password');
+      Alert.alert('حقول ناقصة', 'الرجاء إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
     setLoading(true);
@@ -41,8 +41,8 @@ export default function AuthScreen() {
       }
       router.replace('/(tabs)');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Something went wrong';
-      Alert.alert('Error', msg);
+      const msg = e instanceof Error ? e.message : 'حدث خطأ غير متوقع';
+      Alert.alert(isLogin ? 'فشل تسجيل الدخول' : 'فشل التسجيل', msg);
     } finally {
       setLoading(false);
     }
