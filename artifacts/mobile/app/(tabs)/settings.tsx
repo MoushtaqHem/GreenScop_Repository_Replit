@@ -61,7 +61,7 @@ function SettingRow({
 }
 
 export default function SettingsScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { t, lang, setLang, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
   const [darkMode, setDarkMode] = useState(false);
@@ -185,6 +185,31 @@ export default function SettingsScreen() {
             isRTL={isRTL}
           />
         </View>
+
+        {isAdmin && (
+          <>
+            <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>لوحة الإدارة</Text>
+            <View style={styles.group}>
+              <SettingRow
+                icon="key-outline"
+                iconColor="#7B1FA2"
+                label="إدارة مفاتيح API"
+                sublabel="GEMINI / WEATHER وغيرها"
+                isRTL={isRTL}
+                onPress={() => router.push('/admin/api-keys')}
+              />
+              <View style={styles.separator} />
+              <SettingRow
+                icon="people-outline"
+                iconColor="#1E88E5"
+                label="إدارة المستخدمين"
+                sublabel="حظر / تنبيه / حذف / الباقات"
+                isRTL={isRTL}
+                onPress={() => router.push('/admin/users')}
+              />
+            </View>
+          </>
+        )}
 
         {/* Account */}
         <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('account')}</Text>

@@ -46,6 +46,8 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="report" options={{ headerShown: false }} />
+      <Stack.Screen name="admin/api-keys" options={{ headerShown: false }} />
+      <Stack.Screen name="admin/users" options={{ headerShown: false }} />
     </Stack>
   );
 }

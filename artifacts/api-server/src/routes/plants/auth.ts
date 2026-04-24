@@ -41,6 +41,9 @@ router.post("/register", async (req, res) => {
   res.status(201).json({
     userId: id,
     email,
+    role: "user",
+    status: "active",
+    subscriptionTier: "free",
     token: generateToken(),
   });
 });
@@ -72,9 +75,18 @@ router.post("/login", async (req, res) => {
     return;
   }
 
+  if (user.status === "banned") {
+    res.status(403).json({ error: "Your account has been banned." });
+    return;
+  }
+
   res.json({
     userId: user.id,
     email: user.email,
+    role: user.role,
+    status: user.status,
+    subscriptionTier: user.subscriptionTier,
+    warningMessage: user.status === "warned" ? user.warningMessage : null,
     token: generateToken(),
   });
 });

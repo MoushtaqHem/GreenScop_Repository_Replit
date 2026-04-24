@@ -5,11 +5,16 @@ interface User {
   userId: string;
   email: string;
   token: string;
+  role?: 'user' | 'admin';
+  status?: 'active' | 'warned' | 'banned';
+  subscriptionTier?: 'free' | 'paid';
+  warningMessage?: string | null;
 }
 
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -67,7 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ user, isLoading, login, register, logout }), [user, isLoading]);
+  const value = useMemo(
+    () => ({ user, isLoading, isAdmin: user?.role === 'admin', login, register, logout }),
+    [user, isLoading],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,5 +1,8 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { bootstrap } from "./bootstrap";
+
+bootstrap();
 
 const rawPort = process.env["PORT"];
 
