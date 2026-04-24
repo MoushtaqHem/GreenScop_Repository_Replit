@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -40,6 +40,15 @@ const TIER_LABELS: Record<string, { label: string; color: string }> = {
   paid: { label: 'مدفوعة', color: '#1E88E5' },
 };
 
+type FilterKey = 'all' | 'free' | 'paid' | 'banned';
+
+const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
+  { key: 'all', label: 'الكل', icon: 'apps-outline' },
+  { key: 'free', label: 'مجاني', icon: 'pricetag-outline' },
+  { key: 'paid', label: 'مدفوع', icon: 'diamond-outline' },
+  { key: 'banned', label: 'موقوف', icon: 'ban-outline' },
+];
+
 export default function UsersAdminScreen() {
   const { user, isAdmin } = useAuth();
   const insets = useSafeAreaInsets();
@@ -47,6 +56,8 @@ export default function UsersAdminScreen() {
   const [loading, setLoading] = useState(true);
   const [warningTarget, setWarningTarget] = useState<AdminUser | null>(null);
   const [warningText, setWarningText] = useState('');
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<FilterKey>('all');
 
   const headers = {
     'Content-Type': 'application/json',
@@ -131,6 +142,17 @@ export default function UsersAdminScreen() {
     setWarningText('');
   };
 
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return users.filter((u) => {
+      if (q && !u.email.toLowerCase().includes(q)) return false;
+      if (filter === 'free' && u.subscriptionTier !== 'free') return false;
+      if (filter === 'paid' && u.subscriptionTier !== 'paid') return false;
+      if (filter === 'banned' && u.status !== 'banned') return false;
+      return true;
+    });
+  }, [users, search, filter]);
+
   const webTopPad = Platform.OS === 'web' ? 67 : 0;
 
   return (
@@ -143,12 +165,62 @@ export default function UsersAdminScreen() {
         <View style={{ width: 32 }} />
       </View>
 
+      <View style={styles.toolbar}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={18} color={Colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="ابحث بالبريد الإلكتروني..."
+            placeholderTextColor={Colors.textMuted}
+            autoCapitalize="none"
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+          )}
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersRow}
+        >
+          {FILTERS.map((f) => {
+            const active = filter === f.key;
+            return (
+              <TouchableOpacity
+                key={f.key}
+                style={[styles.chip, active && styles.chipActive]}
+                onPress={() => setFilter(f.key)}
+              >
+                <Ionicons
+                  name={f.icon as never}
+                  size={14}
+                  color={active ? Colors.white : Colors.text}
+                />
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 40 }} />
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 80 }}>
-          <Text style={styles.counter}>{users.length} مستخدم</Text>
-          {users.map((u) => {
+          <Text style={styles.counter}>
+            {filteredUsers.length} من أصل {users.length} مستخدم
+          </Text>
+          {filteredUsers.length === 0 && (
+            <View style={styles.empty}>
+              <Ionicons name="search-outline" size={48} color={Colors.textMuted} />
+              <Text style={styles.emptyText}>لا يوجد مستخدمون مطابقون</Text>
+            </View>
+          )}
+          {filteredUsers.map((u) => {
             const status = STATUS_LABELS[u.status] ?? STATUS_LABELS.active;
             const tier = TIER_LABELS[u.subscriptionTier] ?? TIER_LABELS.free;
             const isMe = u.id === user?.userId;
@@ -335,6 +407,49 @@ const styles = StyleSheet.create({
   btnDel: { borderColor: Colors.error, backgroundColor: Colors.error },
   btnGhost: { borderColor: Colors.border, backgroundColor: Colors.background },
   meTag: { color: Colors.textMuted, fontSize: 12, marginTop: 8, textAlign: 'right' },
+  toolbar: {
+    backgroundColor: Colors.white,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  searchBox: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 42,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+    textAlign: 'right',
+    height: '100%',
+  },
+  filtersRow: { flexDirection: 'row-reverse', gap: 8, paddingTop: 10 },
+  chip: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipText: { fontSize: 13, color: Colors.text, fontWeight: '600' },
+  chipTextActive: { color: Colors.white },
+  empty: { alignItems: 'center', paddingVertical: 40, gap: 10 },
+  emptyText: { color: Colors.textMuted, fontSize: 14 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

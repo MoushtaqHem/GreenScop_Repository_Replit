@@ -1,0 +1,199 @@
+
+📌 أولاً: تعريف المستخدمين
+━━━━━━━━━━━━━━━━━━━━━━━
+
+* المستخدم ينقسم إلى:
+
+  * super_admin
+  * admin
+  * user
+
+* الأدمن الأساسي (Super Admin):
+  email: [salahenghakim@gmail.com](mailto:salahenghakim@gmail.com)
+
+* يمتلك:
+
+  * جميع الصلاحيات بدون قيود
+  * لا يمكن حذفه أو تعديل صلاحياته
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 ثانياً: هيكل البيانات (Firestore)
+━━━━━━━━━━━━━━━━━━━━━━━
+
+collection: users
+
+fields:
+
+* id
+* name
+* email
+* role ("super_admin" | "admin" | "user")
+* permissions: {
+  can_manage_users: boolean,
+  can_manage_payments: boolean,
+  can_delete_users: boolean,
+  can_upgrade_users: boolean,
+  can_add_admins: boolean
+  }
+* subscription ("free" | "premium")
+* is_active (true | false)
+* created_at
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 ثالثاً: إظهار / إخفاء الشاشات (Frontend Logic)
+━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ مهم جداً: شاشات الإدارة يجب أن تظهر فقط للأدمن
+
+1. عند تسجيل الدخول:
+
+* جلب بيانات المستخدم من Firestore
+* تحديد:
+  isAdmin = role === "admin" || role === "super_admin"
+
+2. في Navigation:
+
+* إذا isAdmin == true:
+
+  * عرض:
+
+    * شاشة إدارة المستخدمين
+    * شاشة إدارة المدفوعات
+
+* إذا isAdmin == false:
+
+  * لا يتم عرض هذه الشاشات نهائياً
+
+3. حماية إضافية داخل الشاشة:
+
+* إذا حاول مستخدم عادي الوصول للرابط:
+
+  * يتم تحويله إلى الصفحة الرئيسية
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 رابعاً: PostgreSQL Security Rules
+━━━━━━━━━━━━━━━━━━━━━━━
+
+إنشاء قواعد أمان تحقق التالي:
+
+1. التحقق من تسجيل الدخول:
+   request.auth != null
+
+2. جلب المستخدم الحالي:
+   get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 قواعد القراءة:
+
+* المستخدم:
+
+  * يقرأ بياناته فقط
+
+* الأدمن:
+
+  * يقرأ جميع المستخدمين إذا:
+    permissions.can_manage_users == true
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 قواعد التعديل:
+
+* المستخدم:
+
+  * يعدل بياناته فقط
+  * لا يمكنه تعديل role أو permissions أو subscription
+
+* الأدمن:
+
+  * يمكنه التعديل إذا:
+    permissions.can_manage_users == true
+
+* لا يمكن لأي أدمن تعديل:
+  super_admin
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 قواعد إدارة المدفوعات:
+
+* فقط الأدمن الذي لديه:
+  permissions.can_manage_payments == true
+
+* المستخدم العادي:
+
+  * لا يمكنه الوصول أو تعديل أي بيانات مدفوعات
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 قواعد الحذف:
+
+* فقط إذا:
+  permissions.can_delete_users == true
+
+* لا يمكن حذف:
+  super_admin
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 خامساً: إضافة أدمن جديد
+
+* فقط:
+  super_admin
+  أو admin لديه:
+  can_add_admins = true
+
+* عند إنشاء أدمن:
+  role = "admin"
+
+* يتم تحديد الصلاحيات:
+
+{
+can_manage_users: true,
+can_manage_payments: false,
+can_delete_users: false,
+can_upgrade_users: true,
+can_add_admins: false
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 سادساً: حماية الاشتراكات
+
+* المستخدم العادي:
+  لا يمكنه تعديل subscription
+
+* فقط الأدمن الذي لديه:
+  can_upgrade_users = true
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 سابعاً: حماية الأدمن الأساسي
+
+* إذا email == "[salahenghakim@gmail.com](mailto:salahenghakim@gmail.com)":
+
+  * يمنع:
+
+    * التعديل
+    * الحذف
+    * تغيير role أو permissions
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 ثامناً: الدوال داخل Firestore Rules
+
+إنشاء Functions:
+
+* isAuthenticated()
+* getUserData()
+* isAdmin()
+* isSuperAdmin()
+* hasPermission(permission)
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 تاسعاً: تجربة المستخدم
+
+* إخفاء الشاشات بالكامل من UI
+* عدم تحميل بيانات الإدارة للمستخدم العادي
+* إظهار رسالة:
+  "ليس لديك صلاحية الوصول"
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📌 الهدف النهائي:
+
+إنشاء نظام آمن بالكامل بحيث:
+
+* المستخدم العادي لا يرى ولا يصل لشاشات الإدارة إطلاقاً
+* الأدمن فقط هو من يرى ويتحكم
+* جميع العمليات محمية على مستوى الواجهة + PostgreSQL Rules
