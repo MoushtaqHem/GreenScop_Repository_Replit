@@ -3,8 +3,22 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  useFonts as useCairoFonts,
+  Cairo_400Regular,
+  Cairo_500Medium,
+  Cairo_600SemiBold,
+  Cairo_700Bold,
+  Cairo_800ExtraBold,
+} from "@expo-google-fonts/cairo";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 import React, { useEffect } from "react";
-import { Platform } from "react-native";
+import { Platform, Text, TextInput } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -40,6 +54,18 @@ if (Platform.OS === "web") {
 
 const queryClient = new QueryClient();
 
+function applyDefaultFont() {
+  const TextAny = Text as unknown as { defaultProps?: Record<string, unknown> };
+  TextAny.defaultProps = TextAny.defaultProps || {};
+  const prevTextStyle = (TextAny.defaultProps.style as object | undefined) ?? {};
+  TextAny.defaultProps.style = [{ fontFamily: "Cairo_400Regular" }, prevTextStyle];
+
+  const TextInputAny = TextInput as unknown as { defaultProps?: Record<string, unknown> };
+  TextInputAny.defaultProps = TextInputAny.defaultProps || {};
+  const prevInputStyle = (TextInputAny.defaultProps.style as object | undefined) ?? {};
+  TextInputAny.defaultProps.style = [{ fontFamily: "Cairo_400Regular" }, prevInputStyle];
+}
+
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -53,9 +79,28 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useCairoFonts({
+    Cairo_400Regular,
+    Cairo_500Medium,
+    Cairo_600SemiBold,
+    Cairo_700Bold,
+    Cairo_800ExtraBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
   useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+    if (fontsLoaded) {
+      applyDefaultFont();
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <SafeAreaProvider>
