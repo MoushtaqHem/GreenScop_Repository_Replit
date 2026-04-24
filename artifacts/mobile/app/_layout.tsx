@@ -28,6 +28,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
 import { PlantProvider } from "@/context/PlantContext";
 import { I18nProvider } from "@/context/I18nContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
@@ -106,17 +107,19 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <I18nProvider>
-            <AuthProvider>
-              <PlantProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
-                </GestureHandlerRootView>
-              </PlantProvider>
-            </AuthProvider>
-          </I18nProvider>
+          <ThemeProvider>
+            <I18nProvider>
+              <AuthProvider>
+                <PlantProvider>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  </GestureHandlerRootView>
+                </PlantProvider>
+              </AuthProvider>
+            </I18nProvider>
+          </ThemeProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
+import { useTheme } from '@/context/ThemeContext';
 import Colors from '@/constants/colors';
 
 interface ScanRecord {
@@ -31,10 +32,12 @@ const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 export default function HomeScreen() {
   const { user } = useAuth();
   const { t, isRTL } = useI18n();
+  const { mode } = useTheme();
   const insets = useSafeAreaInsets();
   const [recentScans, setRecentScans] = useState<ScanRecord[]>([]);
   const [loadingScans, setLoadingScans] = useState(true);
   const [search, setSearch] = useState('');
+  const styles = useMemo(() => makeStyles(), [mode]);
 
   const FEATURED_PLANTS = [
     { id: 'f1', name: 'Aloe Vera',  tag: t('healing'),   color: '#4CAF50', icon: 'medkit' as const },
@@ -64,7 +67,6 @@ export default function HomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={[styles.header, isRTL && styles.rowRTL]}>
           <View>
             <Text style={[styles.greeting, isRTL && styles.textRTL]}>{t('goodMorning')}</Text>
@@ -77,7 +79,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Search */}
         <View style={[styles.searchWrapper, isRTL && styles.rowRTL]}>
           <Ionicons name="search-outline" size={18} color={Colors.textMuted} style={styles.searchIcon} />
           <TextInput
@@ -90,7 +91,6 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Quick Action CTA */}
         <View style={styles.quickActions}>
           <TouchableOpacity
             style={styles.scanCta}
@@ -116,7 +116,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Featured Plants */}
         <Text style={[styles.sectionTitle, isRTL && styles.textRTL]}>{t('featuredPlants')}</Text>
         <ScrollView
           horizontal
@@ -139,7 +138,6 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
-        {/* Recent Scans */}
         <View style={[styles.recentHeader, isRTL && styles.rowRTL]}>
           <Text style={[styles.sectionTitle, { marginBottom: 0 }, isRTL && styles.textRTL]}>
             {t('recentScans')}
@@ -192,116 +190,118 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20 },
-  textRTL: { textAlign: 'right' },
-  rowRTL: { flexDirection: 'row-reverse' },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  greeting: { fontSize: 14, color: Colors.textMuted },
-  userName: { fontSize: 24, color: Colors.text, textTransform: 'capitalize' },
-  avatarCircle: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: Colors.accent,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  searchWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 48,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 15, color: Colors.text },
-  quickActions: { marginBottom: 28 },
-  scanCta: {
-    borderRadius: 20, overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3, shadowRadius: 16, elevation: 6,
-  },
-  scanCtaGradient: { padding: 22, borderRadius: 20 },
-  scanCtaContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  scanCtaTitle: { fontSize: 20, color: Colors.white },
-  scanCtaSub: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
-  scanCtaIcon: {
-    width: 60, height: 60, borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  sectionTitle: { fontSize: 18, color: Colors.text, marginBottom: 14 },
-  featuredScroll: { marginHorizontal: -20, marginBottom: 28 },
-  featuredContent: { paddingHorizontal: 20, gap: 12 },
-  featuredCard: {
-    width: 120, backgroundColor: Colors.white,
-    borderRadius: 18, padding: 16, alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1, shadowRadius: 12, elevation: 3,
-    borderWidth: 1, borderColor: Colors.cardBorder,
-  },
-  featuredIcon: {
-    width: 64, height: 64, borderRadius: 20,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
-  },
-  featuredName: { fontSize: 13, color: Colors.text, textAlign: 'center', marginBottom: 6 },
-  featuredTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  featuredTagText: { fontSize: 11 },
-  recentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  seeAll: { fontSize: 14, color: Colors.primary },
-  loader: { marginTop: 20 },
-  emptyState: {
-    alignItems: 'center', paddingVertical: 40,
-    backgroundColor: Colors.white, borderRadius: 20,
-    borderWidth: 1, borderColor: Colors.border,
-  },
-  emptyText: { fontSize: 17, color: Colors.textSecondary, marginTop: 14 },
-  emptySubText: { fontSize: 14, color: Colors.textMuted, marginTop: 6 },
-  recentCard: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.white, borderRadius: 16,
-    padding: 14, marginBottom: 10,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1, shadowRadius: 8, elevation: 2,
-    borderWidth: 1, borderColor: Colors.cardBorder,
-  },
-  recentImageWrapper: {
-    width: 56, height: 56, borderRadius: 14,
-    overflow: 'hidden', marginRight: 14,
-  },
-  recentImage: { width: '100%', height: '100%' },
-  recentImagePlaceholder: {
-    width: '100%', height: '100%',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  recentInfo: { flex: 1 },
-  recentName: { fontSize: 15, color: Colors.text },
-  recentScientific: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic', marginTop: 2 },
-  recentDate: { fontSize: 11, color: Colors.textMuted, marginTop: 4 },
-});
+function makeStyles() {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { flex: 1 },
+    scrollContent: { paddingHorizontal: 20 },
+    textRTL: { textAlign: 'right' },
+    rowRTL: { flexDirection: 'row-reverse' },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    greeting: { fontSize: 14, color: Colors.textMuted },
+    userName: { fontSize: 24, color: Colors.text, textTransform: 'capitalize' },
+    avatarCircle: {
+      width: 44, height: 44, borderRadius: 22,
+      backgroundColor: Colors.accent,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    searchWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Colors.surface,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      height: 48,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      shadowColor: Colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 1,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    searchIcon: { marginRight: 8 },
+    searchInput: { flex: 1, fontSize: 15, color: Colors.text },
+    quickActions: { marginBottom: 28 },
+    scanCta: {
+      borderRadius: 20, overflow: 'hidden',
+      shadowColor: Colors.glow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.6, shadowRadius: 18, elevation: 8,
+    },
+    scanCtaGradient: { padding: 22, borderRadius: 20 },
+    scanCtaContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    scanCtaTitle: { fontSize: 20, color: Colors.white },
+    scanCtaSub: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 4 },
+    scanCtaIcon: {
+      width: 60, height: 60, borderRadius: 30,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    sectionTitle: { fontSize: 18, color: Colors.text, marginBottom: 14 },
+    featuredScroll: { marginHorizontal: -20, marginBottom: 28 },
+    featuredContent: { paddingHorizontal: 20, gap: 12 },
+    featuredCard: {
+      width: 120, backgroundColor: Colors.surface,
+      borderRadius: 18, padding: 16, alignItems: 'center',
+      shadowColor: Colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 1, shadowRadius: 12, elevation: 3,
+      borderWidth: 1, borderColor: Colors.cardBorder,
+    },
+    featuredIcon: {
+      width: 64, height: 64, borderRadius: 20,
+      alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+    },
+    featuredName: { fontSize: 13, color: Colors.text, textAlign: 'center', marginBottom: 6 },
+    featuredTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+    featuredTagText: { fontSize: 11 },
+    recentHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    seeAll: { fontSize: 14, color: Colors.primary },
+    loader: { marginTop: 20 },
+    emptyState: {
+      alignItems: 'center', paddingVertical: 40,
+      backgroundColor: Colors.surface, borderRadius: 20,
+      borderWidth: 1, borderColor: Colors.border,
+    },
+    emptyText: { fontSize: 17, color: Colors.textSecondary, marginTop: 14 },
+    emptySubText: { fontSize: 14, color: Colors.textMuted, marginTop: 6 },
+    recentCard: {
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: Colors.surface, borderRadius: 16,
+      padding: 14, marginBottom: 10,
+      shadowColor: Colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 1, shadowRadius: 8, elevation: 2,
+      borderWidth: 1, borderColor: Colors.cardBorder,
+    },
+    recentImageWrapper: {
+      width: 56, height: 56, borderRadius: 14,
+      overflow: 'hidden', marginRight: 14,
+    },
+    recentImage: { width: '100%', height: '100%' },
+    recentImagePlaceholder: {
+      width: '100%', height: '100%',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    recentInfo: { flex: 1 },
+    recentName: { fontSize: 15, color: Colors.text },
+    recentScientific: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic', marginTop: 2 },
+    recentDate: { fontSize: 11, color: Colors.textMuted, marginTop: 4 },
+  });
+}

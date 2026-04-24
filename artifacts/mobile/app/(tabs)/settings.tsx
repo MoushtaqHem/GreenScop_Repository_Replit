@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
+import { useTheme } from '@/context/ThemeContext';
 import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 
@@ -29,7 +30,7 @@ interface SettingRowProps {
 
 function SettingRow({
   icon,
-  iconColor = Colors.primary,
+  iconColor,
   label,
   sublabel,
   onPress,
@@ -37,6 +38,9 @@ function SettingRow({
   destructive = false,
   isRTL = false,
 }: SettingRowProps) {
+  const { mode } = useTheme();
+  const styles = useMemo(() => makeStyles(), [mode]);
+  const ic = iconColor ?? Colors.primary;
   return (
     <TouchableOpacity
       style={[styles.row, isRTL && styles.rowRTL]}
@@ -44,8 +48,8 @@ function SettingRow({
       activeOpacity={onPress ? 0.7 : 1}
       disabled={!onPress && !rightElement}
     >
-      <View style={[styles.rowIcon, { backgroundColor: iconColor + '20' }]}>
-        <Ionicons name={icon as never} size={20} color={iconColor} />
+      <View style={[styles.rowIcon, { backgroundColor: ic + '20' }]}>
+        <Ionicons name={icon as never} size={20} color={ic} />
       </View>
       <View style={styles.rowContent}>
         <Text style={[styles.rowLabel, destructive && styles.rowLabelDestructive, isRTL && styles.textRTL]}>
@@ -63,9 +67,10 @@ function SettingRow({
 export default function SettingsScreen() {
   const { user, logout, isAdmin } = useAuth();
   const { t, lang, setLang, isRTL } = useI18n();
+  const { mode, isDark, toggleMode } = useTheme();
   const insets = useSafeAreaInsets();
-  const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
+  const styles = useMemo(() => makeStyles(), [mode]);
   const webTopPad = Platform.OS === 'web' ? 67 : 0;
 
   const handleLogout = () => {
@@ -114,17 +119,18 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('preferences')}</Text>
         <View style={styles.group}>
           <SettingRow
-            icon="moon-outline"
-            iconColor="#5C6BC0"
+            icon={isDark ? 'moon' : 'moon-outline'}
+            iconColor={isDark ? Colors.primary : '#5C6BC0'}
             label={t('darkMode')}
-            sublabel={t('comingSoon')}
+            sublabel={isDark ? (isRTL ? 'مفعّل' : 'On') : (isRTL ? 'معطّل' : 'Off')}
             isRTL={isRTL}
             rightElement={
               <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
-                trackColor={{ false: Colors.border, true: Colors.secondary }}
-                thumbColor={Colors.white}
+                value={isDark}
+                onValueChange={toggleMode}
+                trackColor={{ false: Colors.border, true: Colors.primary }}
+                thumbColor={isDark ? Colors.primaryLight : Colors.white}
+                ios_backgroundColor={Colors.border}
               />
             }
           />
@@ -138,7 +144,7 @@ export default function SettingsScreen() {
               <Switch
                 value={notifications}
                 onValueChange={setNotifications}
-                trackColor={{ false: Colors.border, true: Colors.secondary }}
+                trackColor={{ false: Colors.border, true: Colors.primary }}
                 thumbColor={Colors.white}
               />
             }
@@ -230,132 +236,134 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 28,
-    color: Colors.text,
-    marginBottom: 24,
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 28,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 3,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-  },
-  rowRTL: {
-    flexDirection: 'row-reverse',
-  },
-  profileAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 18,
-    color: Colors.text,
-    textTransform: 'capitalize',
-  },
-  profileEmail: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    marginTop: 4,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
-    marginLeft: 4,
-  },
-  group: {
-    backgroundColor: Colors.white,
-    borderRadius: 18,
-    marginBottom: 24,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 3,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    gap: 14,
-  },
-  rowIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowContent: {
-    flex: 1,
-  },
-  rowLabel: {
-    fontSize: 15,
-    color: Colors.text,
-  },
-  rowLabelDestructive: {
-    color: Colors.error,
-  },
-  rowSublabel: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginLeft: 68,
-  },
-  footer: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: Colors.textMuted,
-    paddingTop: 8,
-  },
-  langBadge: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  langBadgeText: {
-    color: Colors.white,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});
+function makeStyles() {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+    },
+    title: {
+      fontSize: 28,
+      color: Colors.text,
+      marginBottom: 24,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    profileCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Colors.surface,
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 28,
+      shadowColor: Colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 1,
+      shadowRadius: 12,
+      elevation: 3,
+      gap: 16,
+      borderWidth: 1,
+      borderColor: Colors.cardBorder,
+    },
+    rowRTL: {
+      flexDirection: 'row-reverse',
+    },
+    profileAvatar: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: Colors.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    profileInfo: {
+      flex: 1,
+    },
+    profileName: {
+      fontSize: 18,
+      color: Colors.text,
+      textTransform: 'capitalize',
+    },
+    profileEmail: {
+      fontSize: 13,
+      color: Colors.textMuted,
+      marginTop: 4,
+    },
+    sectionLabel: {
+      fontSize: 12,
+      color: Colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 10,
+      marginLeft: 4,
+    },
+    group: {
+      backgroundColor: Colors.surface,
+      borderRadius: 18,
+      marginBottom: 24,
+      shadowColor: Colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 1,
+      shadowRadius: 12,
+      elevation: 3,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: Colors.cardBorder,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 18,
+      gap: 14,
+    },
+    rowIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowContent: {
+      flex: 1,
+    },
+    rowLabel: {
+      fontSize: 15,
+      color: Colors.text,
+    },
+    rowLabelDestructive: {
+      color: Colors.error,
+    },
+    rowSublabel: {
+      fontSize: 12,
+      color: Colors.textMuted,
+      marginTop: 2,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: Colors.border,
+      marginLeft: 68,
+    },
+    footer: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: Colors.textMuted,
+      paddingTop: 8,
+    },
+    langBadge: {
+      backgroundColor: Colors.primary,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+    langBadgeText: {
+      color: Colors.white,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+  });
+}

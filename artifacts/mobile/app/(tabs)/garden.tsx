@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   Image, ActivityIndicator, Alert, Platform,
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
+import { useTheme } from '@/context/ThemeContext';
 import { usePlant, SavedPlant } from '@/context/PlantContext';
 import { router } from 'expo-router';
 import Colors from '@/constants/colors';
@@ -16,6 +17,8 @@ const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 
 function PlantCard({ item, onDelete, isRTL }: { item: SavedPlant; onDelete: () => void; isRTL: boolean }) {
   const { setCurrentReport } = usePlant();
+  const { mode } = useTheme();
+  const styles = useMemo(() => makeStyles(), [mode]);
 
   const handlePress = () => {
     setCurrentReport({
@@ -63,9 +66,11 @@ function PlantCard({ item, onDelete, isRTL }: { item: SavedPlant; onDelete: () =
 export default function GardenScreen() {
   const { user } = useAuth();
   const { t, isRTL } = useI18n();
+  const { mode } = useTheme();
   const insets = useSafeAreaInsets();
   const [plants, setPlants] = useState<SavedPlant[]>([]);
   const [loading, setLoading] = useState(true);
+  const styles = useMemo(() => makeStyles(), [mode]);
   const webTopPad = Platform.OS === 'web' ? 67 : 0;
 
   const loadGarden = () => {
@@ -93,9 +98,7 @@ export default function GardenScreen() {
     ]);
   };
 
-  const countLabel = isRTL
-    ? `${plants.length} ${plants.length === 1 ? t('plant') : t('plants')}`
-    : `${plants.length} ${plants.length === 1 ? t('plant') : t('plants')}`;
+  const countLabel = `${plants.length} ${plants.length === 1 ? t('plant') : t('plants')}`;
 
   return (
     <View style={[styles.container, { paddingTop: webTopPad }]}>
@@ -142,43 +145,45 @@ export default function GardenScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: { paddingHorizontal: 20, paddingBottom: 16 },
-  title: { fontSize: 28, color: Colors.text },
-  subtitle: { fontSize: 14, color: Colors.textMuted, marginTop: 4 },
-  textRTL: { textAlign: 'right' },
-  rowRTL: { flexDirection: 'row-reverse' },
-  loader: { marginTop: 40 },
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 14 },
-  emptyIconBg: {
-    width: 120, height: 120, borderRadius: 60,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 8,
-  },
-  emptyTitle: { fontSize: 20, color: Colors.text, textAlign: 'center' },
-  emptyText: { fontSize: 14, color: Colors.textMuted, textAlign: 'center', lineHeight: 20 },
-  scanBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, marginTop: 8,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
-  },
-  scanBtnText: { fontSize: 15, color: Colors.white },
-  list: { paddingHorizontal: 20, paddingTop: 8, gap: 12 },
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.white, borderRadius: 18, padding: 14,
-    shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1, shadowRadius: 12, elevation: 3,
-    borderWidth: 1, borderColor: Colors.cardBorder,
-  },
-  cardImageWrapper: { width: 70, height: 70, borderRadius: 16, overflow: 'hidden', marginRight: 14 },
-  cardImage: { width: '100%', height: '100%' },
-  cardImagePlaceholder: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
-  cardInfo: { flex: 1 },
-  cardName: { fontSize: 16, color: Colors.text },
-  cardScientific: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic', marginTop: 3 },
-  cardDate: { fontSize: 11, color: Colors.textMuted, marginTop: 6 },
-  deleteBtn: { padding: 8 },
-});
+function makeStyles() {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: { paddingHorizontal: 20, paddingBottom: 16 },
+    title: { fontSize: 28, color: Colors.text },
+    subtitle: { fontSize: 14, color: Colors.textMuted, marginTop: 4 },
+    textRTL: { textAlign: 'right' },
+    rowRTL: { flexDirection: 'row-reverse' },
+    loader: { marginTop: 40 },
+    emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 14 },
+    emptyIconBg: {
+      width: 120, height: 120, borderRadius: 60,
+      alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+    },
+    emptyTitle: { fontSize: 20, color: Colors.text, textAlign: 'center' },
+    emptyText: { fontSize: 14, color: Colors.textMuted, textAlign: 'center', lineHeight: 20 },
+    scanBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      backgroundColor: Colors.primary,
+      paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, marginTop: 8,
+      shadowColor: Colors.glow, shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.6, shadowRadius: 14, elevation: 8,
+    },
+    scanBtnText: { fontSize: 15, color: Colors.white },
+    list: { paddingHorizontal: 20, paddingTop: 8, gap: 12 },
+    card: {
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: Colors.surface, borderRadius: 18, padding: 14,
+      shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 1, shadowRadius: 12, elevation: 3,
+      borderWidth: 1, borderColor: Colors.cardBorder,
+    },
+    cardImageWrapper: { width: 70, height: 70, borderRadius: 16, overflow: 'hidden', marginRight: 14 },
+    cardImage: { width: '100%', height: '100%' },
+    cardImagePlaceholder: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+    cardInfo: { flex: 1 },
+    cardName: { fontSize: 16, color: Colors.text },
+    cardScientific: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic', marginTop: 3 },
+    cardDate: { fontSize: 11, color: Colors.textMuted, marginTop: 6 },
+    deleteBtn: { padding: 8 },
+  });
+}

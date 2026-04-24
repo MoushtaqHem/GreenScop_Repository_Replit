@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { usePlant } from '@/context/PlantContext';
+import { useTheme } from '@/context/ThemeContext';
 import Colors from '@/constants/colors';
 
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
@@ -53,10 +54,12 @@ async function uriToBase64(uri: string): Promise<string> {
 export default function ScanScreen() {
   const { user } = useAuth();
   const { setCurrentReport } = usePlant();
+  const { mode, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const styles = useMemo(() => makeStyles(), [mode]);
 
   const pickImage = async (useCamera: boolean) => {
     let result;
@@ -146,6 +149,9 @@ export default function ScanScreen() {
   };
 
   const webTopPad = Platform.OS === 'web' ? 67 : 0;
+  const placeholderColors: [string, string] = isDark
+    ? ['#0F1612', '#0A0F0D']
+    : ['#E8F5E9', '#F1F8E9'];
 
   return (
     <View style={[styles.container, { paddingTop: webTopPad }]}>
@@ -162,7 +168,6 @@ export default function ScanScreen() {
         <Text style={styles.title}>Plant Scanner</Text>
         <Text style={styles.subtitle}>Take or upload a photo to identify</Text>
 
-        {/* Image Preview */}
         <View style={styles.previewContainer}>
           {imageUri ? (
             <View style={styles.imageWrapper}>
@@ -178,10 +183,7 @@ export default function ScanScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            <LinearGradient
-              colors={['#E8F5E9', '#F1F8E9']}
-              style={styles.placeholder}
-            >
+            <LinearGradient colors={placeholderColors} style={styles.placeholder}>
               <View style={styles.placeholderInner}>
                 <Ionicons name="camera-outline" size={64} color={Colors.secondary} />
                 <Text style={styles.placeholderText}>No image selected</Text>
@@ -191,7 +193,6 @@ export default function ScanScreen() {
           )}
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.actions}>
           <TouchableOpacity
             style={styles.actionBtn}
@@ -223,7 +224,6 @@ export default function ScanScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Analyze Button */}
         {imageUri && (
           <TouchableOpacity
             style={[styles.analyzeBtn, analyzing && styles.analyzeBtnDisabled]}
@@ -245,7 +245,6 @@ export default function ScanScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Tips */}
         {!imageUri && (
           <View style={styles.tipsCard}>
             <Text style={styles.tipsTitle}>Tips for best results</Text>
@@ -268,167 +267,169 @@ export default function ScanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text,
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textMuted,
-    marginBottom: 24,
-  },
-  previewContainer: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    marginBottom: 24,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 20,
-    elevation: 5,
-  },
-  imageWrapper: {
-    position: 'relative',
-  },
-  previewImage: {
-    width: '100%',
-    height: 300,
-    borderRadius: 24,
-  },
-  removeBtn: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-  },
-  placeholder: {
-    height: 280,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.border,
-    borderStyle: 'dashed',
-  },
-  placeholderInner: {
-    alignItems: 'center',
-    gap: 10,
-  },
-  placeholderText: {
-    fontSize: 17,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.textSecondary,
-  },
-  placeholderSub: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textMuted,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 14,
-    marginBottom: 20,
-  },
-  actionBtn: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  actionBtnGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  actionBtnText: {
-    fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.white,
-  },
-  actionBtnOutline: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: Colors.white,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderRadius: 16,
-  },
-  actionBtnTextOutline: {
-    fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.primary,
-  },
-  analyzeBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 18,
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  analyzeBtnDisabled: {
-    opacity: 0.7,
-  },
-  analyzingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  analyzeBtnText: {
-    fontSize: 18,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.white,
-    letterSpacing: 0.3,
-  },
-  tipsCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 20,
-    gap: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tipsTitle: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  tipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  tipText: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-});
+function makeStyles() {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+    },
+    title: {
+      fontSize: 28,
+      fontFamily: 'Inter_700Bold',
+      color: Colors.text,
+      marginBottom: 6,
+    },
+    subtitle: {
+      fontSize: 15,
+      fontFamily: 'Inter_400Regular',
+      color: Colors.textMuted,
+      marginBottom: 24,
+    },
+    previewContainer: {
+      borderRadius: 24,
+      overflow: 'hidden',
+      marginBottom: 24,
+      shadowColor: Colors.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 1,
+      shadowRadius: 20,
+      elevation: 5,
+    },
+    imageWrapper: {
+      position: 'relative',
+    },
+    previewImage: {
+      width: '100%',
+      height: 300,
+      borderRadius: 24,
+    },
+    removeBtn: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      backgroundColor: Colors.surface,
+      borderRadius: 14,
+    },
+    placeholder: {
+      height: 280,
+      borderRadius: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: Colors.border,
+      borderStyle: 'dashed',
+    },
+    placeholderInner: {
+      alignItems: 'center',
+      gap: 10,
+    },
+    placeholderText: {
+      fontSize: 17,
+      fontFamily: 'Inter_600SemiBold',
+      color: Colors.textSecondary,
+    },
+    placeholderSub: {
+      fontSize: 13,
+      fontFamily: 'Inter_400Regular',
+      color: Colors.textMuted,
+      textAlign: 'center',
+      paddingHorizontal: 20,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 14,
+      marginBottom: 20,
+    },
+    actionBtn: {
+      flex: 1,
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: Colors.glow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.45,
+      shadowRadius: 10,
+      elevation: 6,
+    },
+    actionBtnGradient: {
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    actionBtnText: {
+      fontSize: 15,
+      fontFamily: 'Inter_600SemiBold',
+      color: Colors.white,
+    },
+    actionBtnOutline: {
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      backgroundColor: Colors.surface,
+      borderWidth: 2,
+      borderColor: Colors.primary,
+      borderRadius: 16,
+    },
+    actionBtnTextOutline: {
+      fontSize: 15,
+      fontFamily: 'Inter_600SemiBold',
+      color: Colors.primary,
+    },
+    analyzeBtn: {
+      backgroundColor: Colors.primary,
+      borderRadius: 18,
+      paddingVertical: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 20,
+      shadowColor: Colors.glow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.7,
+      shadowRadius: 18,
+      elevation: 10,
+    },
+    analyzeBtnDisabled: {
+      opacity: 0.7,
+    },
+    analyzingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    analyzeBtnText: {
+      fontSize: 18,
+      fontFamily: 'Inter_700Bold',
+      color: Colors.white,
+      letterSpacing: 0.3,
+    },
+    tipsCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: 20,
+      padding: 20,
+      gap: 14,
+      borderWidth: 1,
+      borderColor: Colors.cardBorder,
+    },
+    tipsTitle: {
+      fontSize: 15,
+      fontFamily: 'Inter_700Bold',
+      color: Colors.text,
+      marginBottom: 4,
+    },
+    tipRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    tipText: {
+      fontSize: 14,
+      fontFamily: 'Inter_400Regular',
+      color: Colors.textSecondary,
+      flex: 1,
+    },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import Colors from '@/constants/colors';
 
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
@@ -27,6 +28,7 @@ interface ApiKey {
 
 export default function ApiKeysScreen() {
   const { user, isAdmin } = useAuth();
+  const { mode } = useTheme();
   const insets = useSafeAreaInsets();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,7 @@ export default function ApiKeysScreen() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const styles = useMemo(() => makeStyles(), [mode]);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -256,52 +259,54 @@ export default function ApiKeysScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.white,
-  },
-  backBtn: { padding: 4 },
-  title: { fontSize: 18, fontWeight: '600', color: Colors.text },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  keyName: { fontSize: 15, fontWeight: '600', color: Colors.text, textAlign: 'right' },
-  input: {
-    backgroundColor: Colors.background,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginTop: 6,
-    textAlign: 'right',
-  },
-  actions: { flexDirection: 'row-reverse', gap: 8, marginTop: 12 },
-  btn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 },
-  btnPrimary: { backgroundColor: Colors.primary },
-  btnDanger: { backgroundColor: Colors.error },
-  btnGhost: { backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border },
-  btnTextLight: { color: Colors.white, fontWeight: '600' },
-  btnTextDark: { color: Colors.text, fontWeight: '600' },
-});
+function makeStyles() {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+      backgroundColor: Colors.surface,
+    },
+    backBtn: { padding: 4 },
+    title: { fontSize: 18, fontWeight: '600', color: Colors.text },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 14,
+      borderWidth: 1,
+      borderColor: Colors.cardBorder,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    keyName: { fontSize: 15, fontWeight: '600', color: Colors.text, textAlign: 'right' },
+    input: {
+      backgroundColor: Colors.inputBg,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: Colors.text,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      marginTop: 6,
+      textAlign: 'right',
+    },
+    actions: { flexDirection: 'row-reverse', gap: 8, marginTop: 12 },
+    btn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 },
+    btnPrimary: { backgroundColor: Colors.primary },
+    btnDanger: { backgroundColor: Colors.error },
+    btnGhost: { backgroundColor: Colors.inputBg, borderWidth: 1, borderColor: Colors.border },
+    btnTextLight: { color: Colors.white, fontWeight: '600' },
+    btnTextDark: { color: Colors.text, fontWeight: '600' },
+  });
+}

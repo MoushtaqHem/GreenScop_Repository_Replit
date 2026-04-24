@@ -94,3 +94,31 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+### `artifacts/mobile` (`@workspace/mobile`) — GreenScope AI
+
+Expo / React Native mobile app (Arabic-first, RTL).
+
+**Theming / Dark Mode**
+- `constants/colors.ts` exports a dual-palette system: `lightPalette` and `darkPalette` (dark = #0A0F0D background, #141A16 surface, #22C55E primary, white text, green-tinted borders, green glow shadows). Default `Colors` export is a Proxy reading the mutable `currentPalette`. Helpers: `setColorMode(mode)`, `getCurrentMode()`, `getPalette(mode)`, type `Palette`. Extra keys: `inputBg`, `glow`.
+- `context/ThemeContext.tsx` provides `{ mode, setMode, toggleMode, isDark, palette }`, persists choice in AsyncStorage key `greenscope_theme`, hydrates before rendering, and calls `setColorMode` on hydrate/change.
+- `<ThemeProvider>` is wired in `app/_layout.tsx` (wraps `I18nProvider`).
+- The Settings screen has a Dark Mode toggle (Switch) bound to `toggleMode`, with EN/AR On/Off labels.
+
+**Critical pattern — `makeStyles` factory**
+`StyleSheet.create` freezes color values at call time, so the Proxy alone won't update existing stylesheets. Every screen / helper component that uses themed styles must:
+```ts
+const { mode } = useTheme();
+const styles = useMemo(() => makeStyles(), [mode]);
+// ...
+function makeStyles() { return StyleSheet.create({ ... }); }
+```
+Already converted: `(tabs)/_layout.tsx`, `(tabs)/settings.tsx`, `(tabs)/index.tsx`, `(tabs)/garden.tsx`, `(tabs)/favorites.tsx`, `(tabs)/scan.tsx`, `auth.tsx`, `report.tsx`, `admin/api-keys.tsx`, `admin/users.tsx`, plus in-file helper components (PlantCard, FavoriteCard, SettingRow). When adding new themed screens, follow the same factory pattern.
+
+**Color usage rules**
+- Card / surface backgrounds → `Colors.surface` (NOT `Colors.white`).
+- Page backgrounds → `Colors.background`.
+- Borders → `Colors.border` or `Colors.cardBorder`.
+- Text on gradients / colored buttons that should always stay white → `Colors.white` (semantic, stays #FFFFFF in both modes).
+- Green button shadows → `Colors.glow`.
+- Brand / status colors (favorites #E91E63, paid badge #1E88E5, severity palettes) are intentionally hardcoded and not themed.

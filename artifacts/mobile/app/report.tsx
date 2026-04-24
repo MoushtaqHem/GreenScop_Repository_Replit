@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlant, NutritionItem, PlantReport } from '@/context/PlantContext';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import Colors from '@/constants/colors';
 
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
@@ -101,7 +102,9 @@ function SectionCard({
 export default function ReportScreen() {
   const { currentReport } = usePlant();
   const { user } = useAuth();
+  const { mode } = useTheme();
   const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(), [mode]);
   const [savingGarden, setSavingGarden] = useState(false);
   const [savingFav, setSavingFav] = useState(false);
   const [savedGarden, setSavedGarden] = useState(false);
@@ -719,8 +722,9 @@ export default function ReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7F4' },
+function makeStyles() {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
   emptyContainer: {
     flex: 1,
@@ -800,7 +804,7 @@ const styles = StyleSheet.create({
   },
   pdfBtnPrimary: { backgroundColor: Colors.primary },
   pdfBtnGhost: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -808,11 +812,11 @@ const styles = StyleSheet.create({
   pdfBtnTextDark: { color: Colors.text, fontWeight: '700', fontSize: 13 },
 
   section: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EEF2EE',
+    borderColor: Colors.cardBorder,
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
@@ -837,12 +841,12 @@ const styles = StyleSheet.create({
   subtleText: { fontSize: 11, color: Colors.textMuted, marginBottom: 8, textAlign: 'right' },
 
   emptyBox: {
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Colors.background,
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: Colors.border,
     borderStyle: 'dashed',
   },
   emptyBoxText: { color: Colors.textMuted, fontSize: 13, marginBottom: 10 },
@@ -864,12 +868,12 @@ const styles = StyleSheet.create({
   toolsRow: { flexDirection: 'row-reverse', gap: 8 },
   toolCard: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#EEF2EE',
+    borderColor: Colors.cardBorder,
   },
   toolIcon: {
     width: 40,
@@ -899,7 +903,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    borderBottomColor: Colors.border,
     gap: 10,
   },
   careIcon: {
@@ -916,7 +920,7 @@ const styles = StyleSheet.create({
   careGridCell: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Colors.background,
     borderRadius: 10,
     paddingVertical: 10,
     gap: 4,
@@ -932,7 +936,7 @@ const styles = StyleSheet.create({
   },
 
   /* Nutrition */
-  nutritionTable: { borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#EEEEEE' },
+  nutritionTable: { borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border },
   nutritionRow: {
     flexDirection: 'row-reverse',
     paddingVertical: 10,
@@ -940,7 +944,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  nutritionRowAlt: { backgroundColor: '#FAFAFA' },
+  nutritionRowAlt: { backgroundColor: Colors.background },
   nutritionName: { flex: 1.2, fontSize: 13, color: Colors.text, fontWeight: '600', textAlign: 'right' },
   nutritionAmount: { flex: 1, fontSize: 12, color: Colors.textSecondary, textAlign: 'center' },
   nutritionPctWrapper: { flex: 1.5, flexDirection: 'row-reverse', alignItems: 'center', gap: 6 },
@@ -1015,12 +1019,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     padding: 10,
     borderRadius: 8,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: Colors.border,
   },
   shieldNoteText: { flex: 1, fontSize: 12, color: Colors.textDark, textAlign: 'right' },
   shieldEmergencyBtn: {
@@ -1063,9 +1067,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     gap: 8,
     padding: 10,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
+    borderTopColor: Colors.border,
   },
   bottomChip: {
     flexDirection: 'row-reverse',
@@ -1074,9 +1078,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 9,
     borderRadius: 10,
-    backgroundColor: '#F5F7F4',
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: Colors.border,
   },
   bottomChipPrimary: { backgroundColor: Colors.primary, borderColor: Colors.primary, flex: 1, justifyContent: 'center' },
   bottomChipText: { fontSize: 12, color: Colors.text, fontWeight: '700' },
@@ -1101,22 +1105,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: Colors.border,
   },
   modalTitle: { fontSize: 18, fontWeight: '800', color: Colors.text },
   modalClose: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: Colors.border,
   },
 
   soilCard: {
-    backgroundColor: '#F1FAF3',
+    backgroundColor: Colors.background,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
@@ -1142,7 +1146,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -1160,7 +1164,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -1170,7 +1174,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 10,
     padding: 10,
     marginTop: 8,
@@ -1184,7 +1188,7 @@ const styles = StyleSheet.create({
   alertCard: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
@@ -1193,4 +1197,5 @@ const styles = StyleSheet.create({
     borderColor: '#FFE0B2',
   },
   alertText: { flex: 1, fontSize: 13, color: Colors.textDark, textAlign: 'right' },
-});
+  });
+}
