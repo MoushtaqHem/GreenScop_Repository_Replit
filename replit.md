@@ -97,7 +97,33 @@ Utility scripts package. Each script is a `.ts` file in `src/` with a correspond
 
 ### `artifacts/mobile` (`@workspace/mobile`) — GreenScope AI
 
-Expo / React Native mobile app (Arabic-first, RTL).
+Expo / React Native mobile app — fully bilingual (English + Arabic), with proper LTR / RTL switching driven by user choice.
+
+**Internationalization (i18n)**
+- `context/I18nContext.tsx` exposes `{ lang, setLang, t, isRTL }`. `lang` is `'en' | 'ar'`, persisted in AsyncStorage key `greenscope_language`. Default is `'en'`. `isRTL = lang === 'ar'`. The `translations` table holds parallel `en` and `ar` dictionaries with the same keys; `TranslationKeys` is derived from `typeof translations.en` so missing Arabic translations fail at compile time.
+- `<I18nProvider>` is wired in `app/_layout.tsx` inside `<ThemeProvider>`, before any screens.
+- The Settings screen has a Language toggle that calls `setLang('en' | 'ar')` and immediately re-renders all subscribed screens.
+- Every user-facing screen calls `useI18n()` and uses `t('keyName')` instead of literal strings, including alerts, placeholders, buttons, badges, modals, and section titles.
+- Localized screens: `auth.tsx`, `(tabs)/index.tsx`, `(tabs)/garden.tsx`, `(tabs)/favorites.tsx`, `(tabs)/scan.tsx`, `(tabs)/settings.tsx`, `report.tsx`, `admin/api-keys.tsx`, `admin/users.tsx`.
+
+**RTL handling pattern**
+The `makeStyles` factory accepts `isRTL` and produces direction-aware styles:
+```ts
+const { mode } = useTheme();
+const { isRTL } = useI18n();
+const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
+// ...
+function makeStyles(isRTL: boolean) {
+  return StyleSheet.create({
+    row: { flexDirection: isRTL ? 'row-reverse' : 'row' },
+    label: { textAlign: isRTL ? 'right' : 'left' },
+  });
+}
+```
+Back-arrow icons flip via `isRTL ? 'arrow-forward' : 'arrow-back'`. Date strings use `toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US')`. Helper components inside the same file (e.g., `NutritionRow`, `ToolCard`, `SectionCard` in `report.tsx`) re-derive their own `styles` via the same hook pattern — top-level module styles cannot read `isRTL`.
+
+**AI plant report localization**
+The Gemini scan endpoint (`artifacts/api-server/src/routes/plants/scan.ts`) accepts a `lang: 'en' | 'ar'` field on `POST /api/plants/scan`. It branches between `ENGLISH_PROMPT` and `ARABIC_PROMPT`; both prompts enforce the exact same JSON shape but instruct the model to write all text values (plant name, description, benefits, care, nutrition labels, soil ingredients, warning notes, community alerts, safety values `Safe|Caution|Unsafe` vs `آمن|حذر|غير آمن`) in the requested language. The mobile scan screen reads `lang` from `useI18n()` and forwards it in the request body. Cached scans keep their original language; only newly scanned reports follow the current language setting.
 
 **Theming / Dark Mode**
 - `constants/colors.ts` exports a dual-palette system: `lightPalette` and `darkPalette` (dark = #0A0F0D background, #141A16 surface, #22C55E primary, white text, green-tinted borders, green glow shadows). Default `Colors` export is a Proxy reading the mutable `currentPalette`. Helpers: `setColorMode(mode)`, `getCurrentMode()`, `getPalette(mode)`, type `Palette`. Extra keys: `inputBg`, `glow`.

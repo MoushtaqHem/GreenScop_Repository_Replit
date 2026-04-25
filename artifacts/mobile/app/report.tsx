@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlant, NutritionItem, PlantReport } from '@/context/PlantContext';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useI18n } from '@/context/I18nContext';
 import Colors from '@/constants/colors';
 
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
@@ -33,9 +34,15 @@ const SAFETY_PALETTE: Record<string, { bg: string; fg: string }> = {
   'آمن': { bg: '#E8F5E9', fg: '#2E7D32' },
   'حذر': { bg: '#FFF8E1', fg: '#F57C00' },
   'غير آمن': { bg: '#FFEBEE', fg: '#C62828' },
+  'Safe': { bg: '#E8F5E9', fg: '#2E7D32' },
+  'Caution': { bg: '#FFF8E1', fg: '#F57C00' },
+  'Unsafe': { bg: '#FFEBEE', fg: '#C62828' },
 };
 
 function NutritionRow({ item, index }: { item: NutritionItem; index: number }) {
+  const { mode } = useTheme();
+  const { isRTL } = useI18n();
+  const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
   const pct = parseInt(item.percentage, 10) || 0;
   return (
     <View style={[styles.nutritionRow, index % 2 === 0 && styles.nutritionRowAlt]}>
@@ -61,6 +68,9 @@ interface ToolCardProps {
 }
 
 function ToolCard({ icon, iconColor, bg, title, subtitle, onPress }: ToolCardProps) {
+  const { mode } = useTheme();
+  const { isRTL } = useI18n();
+  const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
   return (
     <TouchableOpacity style={styles.toolCard} onPress={onPress} activeOpacity={0.85}>
       <View style={[styles.toolIcon, { backgroundColor: bg }]}>
@@ -85,6 +95,9 @@ function SectionCard({
   children: React.ReactNode;
   badge?: React.ReactNode;
 }) {
+  const { mode } = useTheme();
+  const { isRTL } = useI18n();
+  const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -103,8 +116,9 @@ export default function ReportScreen() {
   const { currentReport } = usePlant();
   const { user } = useAuth();
   const { mode } = useTheme();
+  const { t, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => makeStyles(), [mode]);
+  const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
   const [savingGarden, setSavingGarden] = useState(false);
   const [savingFav, setSavingFav] = useState(false);
   const [savedGarden, setSavedGarden] = useState(false);
@@ -117,9 +131,9 @@ export default function ReportScreen() {
   if (!currentReport) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>لا يوجد تقرير</Text>
+        <Text style={styles.emptyText}>{t('noReport')}</Text>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backLink}>رجوع</Text>
+          <Text style={styles.backLink}>{t('goBack')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -147,9 +161,9 @@ export default function ReportScreen() {
         }),
       });
       setSavedGarden(true);
-      Alert.alert('تمت الإضافة', 'تمت إضافة النبات إلى حديقتك');
+      Alert.alert(t('saved'), t('savedToGarden'));
     } catch {
-      Alert.alert('خطأ', 'تعذر الحفظ في الحديقة');
+      Alert.alert(t('error'), t('couldNotSaveGarden'));
     } finally {
       setSavingGarden(false);
     }
@@ -174,9 +188,9 @@ export default function ReportScreen() {
         }),
       });
       setSavedFav(true);
-      Alert.alert('تمت الإضافة', 'تمت إضافة النبات إلى المفضلة');
+      Alert.alert(t('saved'), t('savedToFavorites'));
     } catch {
-      Alert.alert('خطأ', 'تعذر الحفظ في المفضلة');
+      Alert.alert(t('error'), t('couldNotSaveFavorites'));
     } finally {
       setSavingFav(false);
     }
@@ -184,7 +198,7 @@ export default function ReportScreen() {
 
   const sharePdf = async () => {
     try {
-      const text = `${r.name} (${r.scientificName})\n\n${r.description}\n\nالفوائد: ${r.benefits}\nالعناية: ${r.care}`;
+      const text = `${r.name} (${r.scientificName})\n\n${r.description}\n\n${t('shareBenefitsLabel')}: ${r.benefits}\n${t('shareCareLabel')}: ${r.care}`;
       await Share.share({ message: text, title: r.name });
     } catch {
       // user cancelled
@@ -192,7 +206,7 @@ export default function ReportScreen() {
   };
 
   const downloadPdf = () => {
-    Alert.alert('تصدير PDF', 'سيتم تصدير التقرير الكامل قريباً.');
+    Alert.alert(t('exportPdf'), t('exportPdfMsg'));
   };
 
   return (
@@ -252,10 +266,10 @@ export default function ReportScreen() {
           <View style={styles.heroNameWrap}>
             <View style={styles.heroBadges}>
               <View style={styles.heroBadge}>
-                <Text style={styles.heroBadgeText}>غير سام</Text>
+                <Text style={styles.heroBadgeText}>{t('nonToxic')}</Text>
               </View>
               <View style={[styles.heroBadge, styles.heroBadgeWarn]}>
-                <Text style={styles.heroBadgeText}>صعب</Text>
+                <Text style={styles.heroBadgeText}>{t('difficult')}</Text>
               </View>
             </View>
             <Text style={styles.heroName}>{r.name}</Text>
@@ -268,57 +282,57 @@ export default function ReportScreen() {
           <View style={styles.pdfRow}>
             <TouchableOpacity style={[styles.pdfBtn, styles.pdfBtnPrimary]} onPress={sharePdf}>
               <Ionicons name="share-social-outline" size={16} color={Colors.white} />
-              <Text style={styles.pdfBtnTextLight}>مشاركة PDF</Text>
+              <Text style={styles.pdfBtnTextLight}>{t('sharePdf')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.pdfBtn, styles.pdfBtnGhost]} onPress={downloadPdf}>
               <Ionicons name="download-outline" size={16} color={Colors.text} />
-              <Text style={styles.pdfBtnTextDark}>تحميل PDF</Text>
+              <Text style={styles.pdfBtnTextDark}>{t('downloadPdf')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Similar plants */}
-          <SectionCard icon="images-outline" iconColor="#7B1FA2" title="صور نباتات مشابهة">
+          <SectionCard icon="images-outline" iconColor="#7B1FA2" title={t('similarPlants')}>
             <View style={styles.emptyBox}>
-              <Text style={styles.emptyBoxText}>لا توجد صور مشابهة لهذا النبات</Text>
+              <Text style={styles.emptyBoxText}>{t('noSimilarPhotos')}</Text>
               <TouchableOpacity style={styles.emptyBoxBtn}>
-                <Text style={styles.emptyBoxBtnText}>إعادة البحث</Text>
+                <Text style={styles.emptyBoxBtnText}>{t('searchAgain')}</Text>
               </TouchableOpacity>
             </View>
           </SectionCard>
 
           {/* Smart Tools */}
-          <Text style={styles.groupTitle}>أدوات ذكية</Text>
+          <Text style={styles.groupTitle}>{t('smartTools')}</Text>
           <View style={styles.toolsRow}>
             <ToolCard
               icon="aperture-outline"
               iconColor="#7B1FA2"
               bg="#F3E5F5"
-              title="معاينة AR"
-              subtitle="تجربة في غرفتك"
+              title={t('arPreview')}
+              subtitle={t('tryInRoom')}
               onPress={() => setArOpen(true)}
             />
             <ToolCard
               icon="leaf-outline"
               iconColor="#43A047"
               bg="#E8F5E9"
-              title="مساعد التربة"
-              subtitle="خلطات ووصفات"
+              title={t('soilHelperShort')}
+              subtitle={t('mixesAndRecipes')}
               onPress={() => setSoilOpen(true)}
             />
             <ToolCard
               icon="notifications-outline"
               iconColor="#F57C00"
               bg="#FFF3E0"
-              title="التنبيهات المحلية"
-              subtitle="من المجتمع"
+              title={t('localAlerts')}
+              subtitle={t('fromCommunity')}
               onPress={() => setAlertsOpen(true)}
             />
             <ToolCard
               icon="sunny-outline"
               iconColor="#FBC02D"
               bg="#FFF8E1"
-              title="مقياس الضوء"
-              subtitle="افحص الإضاءة"
+              title={t('lightMeter')}
+              subtitle={t('checkLighting')}
               onPress={() => setLightOpen(true)}
             />
           </View>
@@ -326,30 +340,30 @@ export default function ReportScreen() {
           {/* Risk badge bar */}
           {r.warnings && (
             <View style={[styles.riskBar, { backgroundColor: risk.bg }]}>
-              <Text style={[styles.riskBarText, { color: risk.fg }]}>تجنب الملامسة</Text>
+              <Text style={[styles.riskBarText, { color: risk.fg }]}>{t('avoidContact')}</Text>
               <Ionicons name="warning" size={14} color={risk.fg} />
             </View>
           )}
 
           {/* Care */}
-          <SectionCard icon="leaf" iconColor={Colors.primary} title="دليل العناية">
+          <SectionCard icon="leaf" iconColor={Colors.primary} title={t('careGuide')}>
             <View style={styles.careRow}>
-              <Text style={styles.careValue}>Every 3-4 weeks</Text>
-              <Text style={styles.careLabel}>الري</Text>
+              <Text style={styles.careValue}>{t('waterEveryDefault')}</Text>
+              <Text style={styles.careLabel}>{t('watering')}</Text>
               <View style={styles.careIcon}>
                 <Ionicons name="water" size={14} color="#1E88E5" />
               </View>
             </View>
             <View style={styles.careRow}>
-              <Text style={styles.careValue}>Low to bright indirect light</Text>
-              <Text style={styles.careLabel}>الإضاءة</Text>
+              <Text style={styles.careValue}>{t('lightLevelDefault')}</Text>
+              <Text style={styles.careLabel}>{t('lightLabel')}</Text>
               <View style={styles.careIcon}>
                 <Ionicons name="sunny" size={14} color="#F9A825" />
               </View>
             </View>
             <View style={styles.careRow}>
-              <Text style={styles.careValue}>Standard potting mix</Text>
-              <Text style={styles.careLabel}>التربة</Text>
+              <Text style={styles.careValue}>{t('soilTypeDefault')}</Text>
+              <Text style={styles.careLabel}>{t('soilLabel')}</Text>
               <View style={styles.careIcon}>
                 <Ionicons name="flower" size={14} color="#8D6E63" />
               </View>
@@ -357,33 +371,33 @@ export default function ReportScreen() {
             <View style={styles.careGrid}>
               <View style={styles.careGridCell}>
                 <Ionicons name="thermometer" size={16} color="#E53935" />
-                <Text style={styles.careGridLabel}>الحرارة</Text>
+                <Text style={styles.careGridLabel}>{t('temperature')}</Text>
                 <Text style={styles.careGridValue}>18-27°C</Text>
               </View>
               <View style={styles.careGridCell}>
                 <Ionicons name="trophy" size={16} color="#43A047" />
-                <Text style={styles.careGridLabel}>الصعوبة</Text>
-                <Text style={styles.careGridValue}>سهل</Text>
+                <Text style={styles.careGridLabel}>{t('difficulty')}</Text>
+                <Text style={styles.careGridValue}>{t('easy')}</Text>
               </View>
             </View>
             <Text style={styles.careDescription}>{r.care}</Text>
           </SectionCard>
 
           {/* Botanical description */}
-          <SectionCard icon="information-circle" iconColor={Colors.primary} title="الوصف النباتي">
+          <SectionCard icon="information-circle" iconColor={Colors.primary} title={t('botanicalDescription')}>
             <Text style={styles.bodyText}>{r.description}</Text>
           </SectionCard>
 
           {/* Distribution */}
           {r.distribution && (
-            <SectionCard icon="globe-outline" iconColor="#0288D1" title="أماكن الانتشار">
+            <SectionCard icon="globe-outline" iconColor="#0288D1" title={t('distributionAreas')}>
               <Text style={styles.bodyText}>{r.distribution}</Text>
             </SectionCard>
           )}
 
           {/* Nutritional */}
-          <SectionCard icon="nutrition" iconColor="#43A047" title="القيمة الغذائية">
-            <Text style={styles.subtleText}>القيم لكل 100 جرام</Text>
+          <SectionCard icon="nutrition" iconColor="#43A047" title={t('nutritionalValue')}>
+            <Text style={styles.subtleText}>{t('per100gShort')}</Text>
             <View style={styles.nutritionTable}>
               {r.nutrition.map((item, i) => (
                 <NutritionRow key={item.name} item={item} index={i} />
@@ -392,7 +406,7 @@ export default function ReportScreen() {
           </SectionCard>
 
           {/* Medical benefits */}
-          <SectionCard icon="medkit-outline" iconColor="#43A047" title="الفوائد الطبية">
+          <SectionCard icon="medkit-outline" iconColor="#43A047" title={t('medicalBenefits')}>
             {(r.medicalBenefits && r.medicalBenefits.length > 0
               ? r.medicalBenefits
               : [r.benefits]
@@ -408,7 +422,7 @@ export default function ReportScreen() {
 
           {/* Usage methods */}
           {r.usageMethods && r.usageMethods.length > 0 && (
-            <SectionCard icon="hand-left-outline" iconColor="#1E88E5" title="طرق الاستخدام">
+            <SectionCard icon="hand-left-outline" iconColor="#1E88E5" title={t('usageMethods')}>
               {r.usageMethods.map((m, idx) => (
                 <View key={idx} style={styles.bullet}>
                   <Text style={styles.bulletText}>{m}</Text>
@@ -426,7 +440,7 @@ export default function ReportScreen() {
           {r.warnings && (
             <View style={[styles.section, styles.warningSection]}>
               <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, { color: '#C62828' }]}>التحذيرات</Text>
+                <Text style={[styles.sectionTitle, { color: '#C62828' }]}>{t('warnings')}</Text>
                 <View style={[styles.sectionIcon, { backgroundColor: '#FFEBEE' }]}>
                   <Ionicons name="warning" size={16} color="#C62828" />
                 </View>
@@ -435,11 +449,11 @@ export default function ReportScreen() {
               <View style={styles.warnTopRow}>
                 <View style={[styles.riskBadge, { backgroundColor: risk.bg }]}>
                   <Text style={[styles.riskBadgeText, { color: risk.fg }]}>{risk.label}</Text>
-                  <Text style={styles.riskBadgeLabel}>السمية</Text>
+                  <Text style={styles.riskBadgeLabel}>{t('toxicity')}</Text>
                 </View>
                 <View style={styles.warnTitleWrap}>
-                  <Text style={styles.warnTitle}>نبات سام</Text>
-                  <Text style={styles.warnSubtitle}>الخطر</Text>
+                  <Text style={styles.warnTitle}>{t('toxicPlant')}</Text>
+                  <Text style={styles.warnSubtitle}>{t('danger')}</Text>
                 </View>
                 <View style={[styles.warnIconRound, { backgroundColor: risk.bg }]}>
                   <Ionicons name="warning" size={20} color={risk.fg} />
@@ -451,7 +465,7 @@ export default function ReportScreen() {
               {/* Safety shield */}
               <View style={styles.shieldCard}>
                 <View style={styles.shieldHeader}>
-                  <Text style={styles.shieldTitle}>درع الحماية</Text>
+                  <Text style={styles.shieldTitle}>{t('safetyShield')}</Text>
                   <View style={styles.shieldIcon}>
                     <Ionicons name="shield-checkmark" size={16} color="#1E88E5" />
                   </View>
@@ -476,10 +490,10 @@ export default function ReportScreen() {
                         },
                       ]}
                     >
-                      للحيوانات الأليفة
+                      {t('forPets')}
                     </Text>
                     <Text style={styles.shieldBadgeSub}>
-                      {r.warnings.pet_safety ?? 'حذر'}
+                      {r.warnings.pet_safety ?? t('safetyCaution')}
                     </Text>
                   </View>
                   <View
@@ -500,10 +514,10 @@ export default function ReportScreen() {
                         },
                       ]}
                     >
-                      للأطفال
+                      {t('forChildren')}
                     </Text>
                     <Text style={styles.shieldBadgeSub}>
-                      {r.warnings.child_safety ?? 'حذر'}
+                      {r.warnings.child_safety ?? t('safetyCaution')}
                     </Text>
                   </View>
                 </View>
@@ -522,7 +536,7 @@ export default function ReportScreen() {
                 )}
 
                 <TouchableOpacity style={styles.shieldEmergencyBtn}>
-                  <Text style={styles.shieldEmergencyText}>اتصل بالطبيب فوراً عند الابتلاع</Text>
+                  <Text style={styles.shieldEmergencyText}>{t('callDoctorEmergency')}</Text>
                   <Ionicons name="call" size={14} color={Colors.white} />
                 </TouchableOpacity>
               </View>
@@ -530,7 +544,7 @@ export default function ReportScreen() {
               {/* Symptoms */}
               {r.warnings.symptoms && r.warnings.symptoms.length > 0 && (
                 <View>
-                  <Text style={styles.symptomsTitle}>الأعراض المحتملة</Text>
+                  <Text style={styles.symptomsTitle}>{t('possibleSymptoms')}</Text>
                   <View style={styles.symptomsRow}>
                     {r.warnings.symptoms.map((s) => (
                       <View key={s} style={styles.symptomChip}>
@@ -549,15 +563,15 @@ export default function ReportScreen() {
       {/* Bottom action bar */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 8 }]}>
         <TouchableOpacity style={styles.bottomChip} onPress={() => setAlertsOpen(true)}>
-          <Text style={styles.bottomChipText}>تنبيهات المجتمع</Text>
+          <Text style={styles.bottomChipText}>{t('communityAlertsShort')}</Text>
           <Ionicons name="notifications-outline" size={14} color={Colors.text} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.bottomChip} onPress={() => setSoilOpen(true)}>
-          <Text style={styles.bottomChipText}>مساعد التربة</Text>
+          <Text style={styles.bottomChipText}>{t('soilHelperShort')}</Text>
           <Ionicons name="leaf-outline" size={14} color={Colors.text} />
         </TouchableOpacity>
         <TouchableOpacity style={[styles.bottomChip, styles.bottomChipPrimary]} onPress={downloadPdf}>
-          <Text style={styles.bottomChipTextLight}>تصدير PDF</Text>
+          <Text style={styles.bottomChipTextLight}>{t('exportPdf')}</Text>
           <Ionicons name="download" size={14} color={Colors.white} />
         </TouchableOpacity>
       </View>
@@ -567,7 +581,7 @@ export default function ReportScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>مساعد التربة والتقصيص</Text>
+              <Text style={styles.modalTitle}>{t('soilAndPottingHelper')}</Text>
               <TouchableOpacity onPress={() => setSoilOpen(false)} style={styles.modalClose}>
                 <Ionicons name="close" size={20} color={Colors.text} />
               </TouchableOpacity>
@@ -577,9 +591,9 @@ export default function ReportScreen() {
                 <View style={styles.soilCardHeader}>
                   <View>
                     <Text style={styles.soilTitle}>
-                      {r.soilHelper?.title ?? 'وصفة التربة المثالية'}
+                      {r.soilHelper?.title ?? t('idealSoilRecipe')}
                     </Text>
-                    <Text style={styles.soilSubtitle}>وصفة التربة المثالية</Text>
+                    <Text style={styles.soilSubtitle}>{t('idealSoilRecipe')}</Text>
                   </View>
                   <View style={styles.soilHeaderIcon}>
                     <Ionicons name="leaf" size={18} color="#43A047" />
@@ -600,7 +614,7 @@ export default function ReportScreen() {
                     <View style={styles.soilParts}>
                       <Text style={styles.soilPartsText}>{r.soilHelper.ph_range}</Text>
                     </View>
-                    <Text style={styles.soilName}>درجة الحموضة المثالية</Text>
+                    <Text style={styles.soilName}>{t('idealPh')}</Text>
                   </View>
                 )}
 
@@ -614,13 +628,13 @@ export default function ReportScreen() {
 
               {r.soilHelper?.watering_tip && (
                 <View style={[styles.tipBox, { backgroundColor: '#E3F2FD' }]}>
-                  <Text style={[styles.tipTitle, { color: '#1565C0' }]}>نصيحة الري</Text>
+                  <Text style={[styles.tipTitle, { color: '#1565C0' }]}>{t('wateringTip')}</Text>
                   <Text style={styles.tipText}>{r.soilHelper.watering_tip}</Text>
                 </View>
               )}
               {r.soilHelper?.drainage_tip && (
                 <View style={[styles.tipBox, { backgroundColor: '#FFF8E1' }]}>
-                  <Text style={[styles.tipTitle, { color: '#E65100' }]}>نصيحة التصريف</Text>
+                  <Text style={[styles.tipTitle, { color: '#E65100' }]}>{t('drainageTip')}</Text>
                   <Text style={styles.tipText}>{r.soilHelper.drainage_tip}</Text>
                 </View>
               )}
@@ -634,13 +648,13 @@ export default function ReportScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>تنبيهات المجتمع المحلي</Text>
+              <Text style={styles.modalTitle}>{t('localCommunityAlerts')}</Text>
               <TouchableOpacity onPress={() => setAlertsOpen(false)} style={styles.modalClose}>
                 <Ionicons name="close" size={20} color={Colors.text} />
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={{ padding: 16 }}>
-              {(r.communityAlerts ?? ['لا توجد تنبيهات حالياً.']).map((a, idx) => (
+              {(r.communityAlerts ?? [t('noAlertsCurrently')]).map((a, idx) => (
                 <View key={idx} style={styles.alertCard}>
                   <Text style={styles.alertText}>{a}</Text>
                   <Ionicons name="megaphone-outline" size={18} color="#F57C00" />
@@ -656,7 +670,7 @@ export default function ReportScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>مقياس الضوء</Text>
+              <Text style={styles.modalTitle}>{t('lightMeter')}</Text>
               <TouchableOpacity onPress={() => setLightOpen(false)} style={styles.modalClose}>
                 <Ionicons name="close" size={20} color={Colors.text} />
               </TouchableOpacity>
@@ -675,10 +689,10 @@ export default function ReportScreen() {
                 <Ionicons name="sunny" size={60} color="#FBC02D" />
               </View>
               <Text style={{ fontSize: 16, color: Colors.text, textAlign: 'center' }}>
-                وجّه كاميرا هاتفك نحو موقع النبات لقياس شدة الإضاءة.
+                {t('pointCameraAtPlant')}
               </Text>
               <Text style={{ fontSize: 13, color: Colors.textMuted, textAlign: 'center' }}>
-                هذه الميزة قيد التطوير وستتوفر قريباً.
+                {t('featureInDevelopment')}
               </Text>
             </View>
           </View>
@@ -690,7 +704,7 @@ export default function ReportScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>معاينة AR</Text>
+              <Text style={styles.modalTitle}>{t('arPreview')}</Text>
               <TouchableOpacity onPress={() => setArOpen(false)} style={styles.modalClose}>
                 <Ionicons name="close" size={20} color={Colors.text} />
               </TouchableOpacity>
@@ -709,10 +723,10 @@ export default function ReportScreen() {
                 <Ionicons name="aperture" size={60} color="#7B1FA2" />
               </View>
               <Text style={{ fontSize: 16, color: Colors.text, textAlign: 'center' }}>
-                تجربة وضع النبات في غرفتك بتقنية الواقع المعزز.
+                {t('arPreviewDesc')}
               </Text>
               <Text style={{ fontSize: 13, color: Colors.textMuted, textAlign: 'center' }}>
-                هذه الميزة قيد التطوير وستتوفر قريباً.
+                {t('featureInDevelopment')}
               </Text>
             </View>
           </View>
@@ -722,7 +736,7 @@ export default function ReportScreen() {
   );
 }
 
-function makeStyles() {
+function makeStyles(isRTL: boolean) {
   return StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
@@ -750,7 +764,7 @@ function makeStyles() {
     top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     alignItems: 'flex-start',
@@ -765,9 +779,9 @@ function makeStyles() {
   },
   iconBtnSaved: { backgroundColor: 'rgba(46,125,50,0.7)' },
   iconBtnFav: { backgroundColor: 'rgba(255,107,107,0.3)' },
-  heroActions: { flexDirection: 'row-reverse', gap: 8 },
+  heroActions: { flexDirection: isRTL ? 'row-reverse' : 'row', gap: 8 },
   heroNameWrap: { position: 'absolute', bottom: 16, right: 20, left: 20, alignItems: 'flex-end' },
-  heroBadges: { flexDirection: 'row-reverse', gap: 6, marginBottom: 6 },
+  heroBadges: { flexDirection: isRTL ? 'row-reverse' : 'row', gap: 6, marginBottom: 6 },
   heroBadge: {
     backgroundColor: '#43A047',
     paddingHorizontal: 10,
@@ -776,22 +790,22 @@ function makeStyles() {
   },
   heroBadgeWarn: { backgroundColor: '#F57C00' },
   heroBadgeText: { color: Colors.white, fontSize: 11, fontWeight: '700' },
-  heroName: { color: Colors.white, fontSize: 26, fontWeight: '800', textAlign: 'right' },
+  heroName: { color: Colors.white, fontSize: 26, fontWeight: '800', textAlign: isRTL ? 'right' : 'left' },
   heroScientific: {
     color: 'rgba(255,255,255,0.85)',
     fontSize: 13,
     fontStyle: 'italic',
     marginTop: 2,
-    textAlign: 'right',
+    textAlign: isRTL ? 'right' : 'left',
   },
 
   /* Content */
   content: { padding: 16, gap: 14 },
 
-  pdfRow: { flexDirection: 'row-reverse', gap: 10, marginTop: -36, marginHorizontal: 4 },
+  pdfRow: { flexDirection: isRTL ? 'row-reverse' : 'row', gap: 10, marginTop: -36, marginHorizontal: 4 },
   pdfBtn: {
     flex: 1,
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
@@ -824,7 +838,7 @@ function makeStyles() {
   },
   warningSection: { borderColor: '#FFCDD2' },
   sectionHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     marginBottom: 10,
     gap: 8,
@@ -836,9 +850,9 @@ function makeStyles() {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sectionTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: Colors.text, textAlign: 'right' },
-  bodyText: { fontSize: 14, color: Colors.textDark, lineHeight: 22, textAlign: 'right' },
-  subtleText: { fontSize: 11, color: Colors.textMuted, marginBottom: 8, textAlign: 'right' },
+  sectionTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: Colors.text, textAlign: isRTL ? 'right' : 'left' },
+  bodyText: { fontSize: 14, color: Colors.textDark, lineHeight: 22, textAlign: isRTL ? 'right' : 'left' },
+  subtleText: { fontSize: 11, color: Colors.textMuted, marginBottom: 8, textAlign: isRTL ? 'right' : 'left' },
 
   emptyBox: {
     backgroundColor: Colors.background,
@@ -862,10 +876,10 @@ function makeStyles() {
     fontSize: 13,
     color: Colors.textMuted,
     fontWeight: '700',
-    textAlign: 'right',
+    textAlign: isRTL ? 'right' : 'left',
     marginTop: 4,
   },
-  toolsRow: { flexDirection: 'row-reverse', gap: 8 },
+  toolsRow: { flexDirection: isRTL ? 'row-reverse' : 'row', gap: 8 },
   toolCard: {
     flex: 1,
     backgroundColor: Colors.surface,
@@ -887,7 +901,7 @@ function makeStyles() {
   toolSubtitle: { fontSize: 10, color: Colors.textMuted, textAlign: 'center', marginTop: 2 },
 
   riskBar: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -899,7 +913,7 @@ function makeStyles() {
 
   /* Care */
   careRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
@@ -914,9 +928,9 @@ function makeStyles() {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  careLabel: { color: Colors.textMuted, fontSize: 12, width: 50, textAlign: 'right' },
+  careLabel: { color: Colors.textMuted, fontSize: 12, width: 50, textAlign: isRTL ? 'right' : 'left' },
   careValue: { flex: 1, fontSize: 13, color: Colors.text, textAlign: 'left', fontStyle: 'italic' },
-  careGrid: { flexDirection: 'row-reverse', gap: 10, marginTop: 12 },
+  careGrid: { flexDirection: isRTL ? 'row-reverse' : 'row', gap: 10, marginTop: 12 },
   careGridCell: {
     flex: 1,
     alignItems: 'center',
@@ -932,28 +946,28 @@ function makeStyles() {
     fontSize: 13,
     color: Colors.textDark,
     lineHeight: 20,
-    textAlign: 'right',
+    textAlign: isRTL ? 'right' : 'left',
   },
 
   /* Nutrition */
   nutritionTable: { borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border },
   nutritionRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     paddingVertical: 10,
     paddingHorizontal: 12,
     alignItems: 'center',
     gap: 8,
   },
   nutritionRowAlt: { backgroundColor: Colors.background },
-  nutritionName: { flex: 1.2, fontSize: 13, color: Colors.text, fontWeight: '600', textAlign: 'right' },
+  nutritionName: { flex: 1.2, fontSize: 13, color: Colors.text, fontWeight: '600', textAlign: isRTL ? 'right' : 'left' },
   nutritionAmount: { flex: 1, fontSize: 12, color: Colors.textSecondary, textAlign: 'center' },
-  nutritionPctWrapper: { flex: 1.5, flexDirection: 'row-reverse', alignItems: 'center', gap: 6 },
+  nutritionPctWrapper: { flex: 1.5, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 },
   pctBar: { flex: 1, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2 },
   pctFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 2 },
   nutritionPct: { fontSize: 11, color: Colors.primary, fontWeight: '700', minWidth: 36, textAlign: 'left' },
 
   /* Bullets */
-  bullet: { flexDirection: 'row-reverse', alignItems: 'flex-start', gap: 8, marginVertical: 5 },
+  bullet: { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: 8, marginVertical: 5 },
   bulletDot: {
     width: 22,
     height: 22,
@@ -963,11 +977,11 @@ function makeStyles() {
     justifyContent: 'center',
     marginTop: 1,
   },
-  bulletText: { flex: 1, color: Colors.textDark, fontSize: 13, lineHeight: 20, textAlign: 'right' },
+  bulletText: { flex: 1, color: Colors.textDark, fontSize: 13, lineHeight: 20, textAlign: isRTL ? 'right' : 'left' },
 
   /* Warnings */
   warnTopRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     backgroundColor: '#FFF5F5',
     borderRadius: 12,
@@ -981,7 +995,7 @@ function makeStyles() {
   riskBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' },
   riskBadgeText: { fontSize: 14, fontWeight: '800' },
   riskBadgeLabel: { fontSize: 10, color: Colors.textMuted, marginTop: 1 },
-  warnText: { fontSize: 13, color: Colors.textDark, lineHeight: 20, marginTop: 10, textAlign: 'right' },
+  warnText: { fontSize: 13, color: Colors.textDark, lineHeight: 20, marginTop: 10, textAlign: isRTL ? 'right' : 'left' },
 
   shieldCard: {
     backgroundColor: '#F8FAFE',
@@ -992,7 +1006,7 @@ function makeStyles() {
     borderColor: '#E1ECF7',
   },
   shieldHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     gap: 6,
     marginBottom: 10,
@@ -1005,8 +1019,8 @@ function makeStyles() {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shieldTitle: { flex: 1, fontWeight: '700', color: Colors.text, fontSize: 14, textAlign: 'right' },
-  shieldRow: { flexDirection: 'row-reverse', gap: 8 },
+  shieldTitle: { flex: 1, fontWeight: '700', color: Colors.text, fontSize: 14, textAlign: isRTL ? 'right' : 'left' },
+  shieldRow: { flexDirection: isRTL ? 'row-reverse' : 'row', gap: 8 },
   shieldBadge: {
     flex: 1,
     paddingVertical: 10,
@@ -1016,7 +1030,7 @@ function makeStyles() {
   shieldBadgeText: { fontSize: 12, fontWeight: '700' },
   shieldBadgeSub: { fontSize: 11, marginTop: 2, opacity: 0.8 },
   shieldNote: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: Colors.surface,
@@ -1026,9 +1040,9 @@ function makeStyles() {
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  shieldNoteText: { flex: 1, fontSize: 12, color: Colors.textDark, textAlign: 'right' },
+  shieldNoteText: { flex: 1, fontSize: 12, color: Colors.textDark, textAlign: isRTL ? 'right' : 'left' },
   shieldEmergencyBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
@@ -1043,12 +1057,12 @@ function makeStyles() {
     color: Colors.textMuted,
     marginTop: 14,
     marginBottom: 6,
-    textAlign: 'right',
+    textAlign: isRTL ? 'right' : 'left',
     fontWeight: '700',
   },
-  symptomsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 6 },
+  symptomsRow: { flexDirection: isRTL ? 'row-reverse' : 'row', flexWrap: 'wrap', gap: 6 },
   symptomChip: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#FFEBEE',
@@ -1064,7 +1078,7 @@ function makeStyles() {
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     gap: 8,
     padding: 10,
     backgroundColor: Colors.surface,
@@ -1072,7 +1086,7 @@ function makeStyles() {
     borderTopColor: Colors.border,
   },
   bottomChip: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 10,
@@ -1100,7 +1114,7 @@ function makeStyles() {
     paddingBottom: Platform.OS === 'ios' ? 30 : 16,
   },
   modalHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
@@ -1127,13 +1141,13 @@ function makeStyles() {
     borderColor: '#C8E6C9',
   },
   soilCardHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  soilTitle: { fontSize: 15, fontWeight: '800', color: Colors.text, textAlign: 'right' },
-  soilSubtitle: { fontSize: 11, color: Colors.textMuted, marginTop: 2, textAlign: 'right' },
+  soilTitle: { fontSize: 15, fontWeight: '800', color: Colors.text, textAlign: isRTL ? 'right' : 'left' },
+  soilSubtitle: { fontSize: 11, color: Colors.textMuted, marginTop: 2, textAlign: isRTL ? 'right' : 'left' },
   soilHeaderIcon: {
     width: 32,
     height: 32,
@@ -1143,7 +1157,7 @@ function makeStyles() {
     justifyContent: 'center',
   },
   soilIngredient: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Colors.surface,
@@ -1161,7 +1175,7 @@ function makeStyles() {
   },
   soilPartsText: { color: '#2E7D32', fontWeight: '700', fontSize: 12 },
   soilPh: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Colors.surface,
@@ -1171,7 +1185,7 @@ function makeStyles() {
     marginTop: 4,
   },
   soilTip: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: Colors.surface,
@@ -1179,14 +1193,14 @@ function makeStyles() {
     padding: 10,
     marginTop: 8,
   },
-  soilTipText: { flex: 1, fontSize: 12, color: Colors.textDark, textAlign: 'right' },
+  soilTipText: { flex: 1, fontSize: 12, color: Colors.textDark, textAlign: isRTL ? 'right' : 'left' },
 
   tipBox: { borderRadius: 12, padding: 12, marginTop: 10 },
-  tipTitle: { fontWeight: '800', fontSize: 13, marginBottom: 4, textAlign: 'right' },
-  tipText: { fontSize: 12, color: Colors.textDark, lineHeight: 18, textAlign: 'right' },
+  tipTitle: { fontWeight: '800', fontSize: 13, marginBottom: 4, textAlign: isRTL ? 'right' : 'left' },
+  tipText: { fontSize: 12, color: Colors.textDark, lineHeight: 18, textAlign: isRTL ? 'right' : 'left' },
 
   alertCard: {
-    flexDirection: 'row-reverse',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 12,
@@ -1196,6 +1210,6 @@ function makeStyles() {
     borderWidth: 1,
     borderColor: '#FFE0B2',
   },
-  alertText: { flex: 1, fontSize: 13, color: Colors.textDark, textAlign: 'right' },
+  alertText: { flex: 1, fontSize: 13, color: Colors.textDark, textAlign: isRTL ? 'right' : 'left' },
   });
 }

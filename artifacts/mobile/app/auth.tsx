@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useI18n } from '@/context/I18nContext';
 import Colors from '@/constants/colors';
 
 export default function AuthScreen() {
@@ -27,12 +28,13 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const { login, register } = useAuth();
   const { mode, isDark } = useTheme();
+  const { t, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => makeStyles(), [mode]);
+  const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('حقول ناقصة', 'الرجاء إدخال البريد الإلكتروني وكلمة المرور');
+      Alert.alert(t('missingFields'), t('enterEmailPassword'));
       return;
     }
     setLoading(true);
@@ -44,8 +46,8 @@ export default function AuthScreen() {
       }
       router.replace('/(tabs)');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'حدث خطأ غير متوقع';
-      Alert.alert(isLogin ? 'فشل تسجيل الدخول' : 'فشل التسجيل', msg);
+      const msg = e instanceof Error ? e.message : t('unexpectedError');
+      Alert.alert(isLogin ? t('loginFailed') : t('registrationFailed'), msg);
     } finally {
       setLoading(false);
     }
@@ -76,17 +78,19 @@ export default function AuthScreen() {
               <Ionicons name="leaf" size={48} color={Colors.primary} />
             </View>
             <Text style={styles.appName}>GreenScope AI</Text>
-            <Text style={styles.tagline}>Identify plants with intelligence</Text>
+            <Text style={styles.tagline}>{t('appTagline')}</Text>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{isLogin ? 'Welcome back' : 'Create account'}</Text>
+            <Text style={[styles.cardTitle, isRTL && styles.textRTL]}>
+              {isLogin ? t('welcomeBack') : t('createAccount')}
+            </Text>
 
             <View style={styles.inputWrapper}>
               <Ionicons name="mail-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
-                placeholder="Email address"
+                style={[styles.input, isRTL && styles.inputRTL]}
+                placeholder={t('emailAddress')}
                 placeholderTextColor={Colors.textMuted}
                 value={email}
                 onChangeText={setEmail}
@@ -99,13 +103,13 @@ export default function AuthScreen() {
             <View style={styles.inputWrapper}>
               <Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
               <TextInput
-                style={[styles.input, styles.inputFlex]}
-                placeholder="Password"
+                style={[styles.input, styles.inputFlex, isRTL && styles.inputRTL]}
+                placeholder={t('password')}
                 placeholderTextColor={Colors.textMuted}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                autoComplete={isLogin ? "current-password" : "new-password"}
+                autoComplete={isLogin ? 'current-password' : 'new-password'}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
                 <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
@@ -121,14 +125,14 @@ export default function AuthScreen() {
               {loading ? (
                 <ActivityIndicator color={Colors.white} />
               ) : (
-                <Text style={styles.submitText}>{isLogin ? 'Sign In' : 'Create Account'}</Text>
+                <Text style={styles.submitText}>{isLogin ? t('signIn') : t('register')}</Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.switchRow}>
               <Text style={styles.switchText}>
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <Text style={styles.switchLink}>{isLogin ? 'Sign up' : 'Sign in'}</Text>
+                {isLogin ? t('noAccount') + ' ' : t('haveAccount') + ' '}
+                <Text style={styles.switchLink}>{isLogin ? t('signUp') : t('signInLink')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -138,7 +142,7 @@ export default function AuthScreen() {
   );
 }
 
-function makeStyles() {
+function makeStyles(isRTL: boolean) {
   return StyleSheet.create({
     gradient: {
       flex: 1,
@@ -181,6 +185,7 @@ function makeStyles() {
       fontFamily: 'Inter_400Regular',
       color: 'rgba(255,255,255,0.85)',
       marginTop: 6,
+      textAlign: 'center',
     },
     card: {
       backgroundColor: Colors.surface,
@@ -201,7 +206,7 @@ function makeStyles() {
       marginBottom: 24,
     },
     inputWrapper: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       backgroundColor: Colors.inputBg,
       borderRadius: 14,
@@ -212,7 +217,7 @@ function makeStyles() {
       height: 54,
     },
     inputIcon: {
-      marginRight: 10,
+      marginHorizontal: 5,
     },
     input: {
       flex: 1,
@@ -220,6 +225,11 @@ function makeStyles() {
       fontSize: 16,
       color: Colors.text,
       height: '100%',
+      marginHorizontal: 5,
+    },
+    inputRTL: {
+      textAlign: 'right',
+      writingDirection: 'rtl',
     },
     inputFlex: {
       flex: 1,
@@ -261,6 +271,10 @@ function makeStyles() {
     switchLink: {
       fontFamily: 'Inter_600SemiBold',
       color: Colors.primary,
+    },
+    textRTL: {
+      textAlign: 'right',
+      writingDirection: 'rtl',
     },
   });
 }

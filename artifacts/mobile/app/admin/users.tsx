@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useI18n } from '@/context/I18nContext';
 import Colors from '@/constants/colors';
 
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
@@ -30,29 +31,12 @@ interface AdminUser {
   createdAt: string;
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  active: { label: 'نشط', color: '#43A047' },
-  warned: { label: 'تنبيه', color: '#F57C00' },
-  banned: { label: 'محظور', color: '#E53935' },
-};
-
-const TIER_LABELS: Record<string, { label: string; color: string }> = {
-  free: { label: 'مجانية', color: '#9E9E9E' },
-  paid: { label: 'مدفوعة', color: '#1E88E5' },
-};
-
 type FilterKey = 'all' | 'free' | 'paid' | 'banned';
-
-const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
-  { key: 'all', label: 'الكل', icon: 'apps-outline' },
-  { key: 'free', label: 'مجاني', icon: 'pricetag-outline' },
-  { key: 'paid', label: 'مدفوع', icon: 'diamond-outline' },
-  { key: 'banned', label: 'موقوف', icon: 'ban-outline' },
-];
 
 export default function UsersAdminScreen() {
   const { user, isAdmin } = useAuth();
   const { mode } = useTheme();
+  const { t, lang, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +44,25 @@ export default function UsersAdminScreen() {
   const [warningText, setWarningText] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
-  const styles = useMemo(() => makeStyles(), [mode]);
+  const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
+
+  const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+    active: { label: t('userActive'), color: '#43A047' },
+    warned: { label: t('userWarned'), color: '#F57C00' },
+    banned: { label: t('userBanned'), color: '#E53935' },
+  };
+
+  const TIER_LABELS: Record<string, { label: string; color: string }> = {
+    free: { label: t('tierFree'), color: '#9E9E9E' },
+    paid: { label: t('tierPaid'), color: '#1E88E5' },
+  };
+
+  const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
+    { key: 'all', label: t('filterAll'), icon: 'apps-outline' },
+    { key: 'free', label: t('filterFree'), icon: 'pricetag-outline' },
+    { key: 'paid', label: t('filterPaid'), icon: 'diamond-outline' },
+    { key: 'banned', label: t('filterBanned'), icon: 'ban-outline' },
+  ];
 
   const headers = {
     'Content-Type': 'application/json',
@@ -71,15 +73,15 @@ export default function UsersAdminScreen() {
     setLoading(true);
     try {
       const res = await fetch(`${BASE_URL}/api/admin/users`, { headers });
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('loadFailed'));
       const data = await res.json();
       setUsers(data.users);
     } catch (e) {
-      Alert.alert('خطأ', e instanceof Error ? e.message : 'فشل التحميل');
+      Alert.alert(t('error'), e instanceof Error ? e.message : t('loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [user?.userId]);
+  }, [user?.userId, t]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -96,18 +98,18 @@ export default function UsersAdminScreen() {
         headers,
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error('Update failed');
+      if (!res.ok) throw new Error(t('updateFailed'));
       load();
     } catch (e) {
-      Alert.alert('خطأ', e instanceof Error ? e.message : 'فشل التحديث');
+      Alert.alert(t('error'), e instanceof Error ? e.message : t('updateFailed'));
     }
   };
 
   const deleteUser = (u: AdminUser) => {
-    Alert.alert('حذف المستخدم', `حذف ${u.email} نهائياً؟`, [
-      { text: 'إلغاء', style: 'cancel' },
+    Alert.alert(t('deleteUserTitle'), `${u.email}: ${t('confirmDeleteUser')}`, [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: 'حذف',
+        text: t('delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -115,10 +117,10 @@ export default function UsersAdminScreen() {
               method: 'DELETE',
               headers,
             });
-            if (!res.ok) throw new Error('Delete failed');
+            if (!res.ok) throw new Error(t('deleteFailed'));
             load();
           } catch (e) {
-            Alert.alert('خطأ', e instanceof Error ? e.message : 'فشل الحذف');
+            Alert.alert(t('error'), e instanceof Error ? e.message : t('deleteFailed'));
           }
         },
       },
@@ -139,7 +141,7 @@ export default function UsersAdminScreen() {
     if (!warningTarget) return;
     await updateUser(warningTarget.id, {
       status: 'warned',
-      warningMessage: warningText.trim() || 'تم توجيه تنبيه إليك من الإدارة.',
+      warningMessage: warningText.trim() || t('defaultWarningMsg'),
     });
     setWarningTarget(null);
     setWarningText('');
@@ -157,14 +159,15 @@ export default function UsersAdminScreen() {
   }, [users, search, filter]);
 
   const webTopPad = Platform.OS === 'web' ? 67 : 0;
+  const dateLocale = lang === 'ar' ? 'ar-EG' : 'en-US';
 
   return (
     <View style={[styles.container, { paddingTop: webTopPad + insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>إدارة المستخدمين</Text>
+        <Text style={styles.title}>{t('usersManagement')}</Text>
         <View style={{ width: 32 }} />
       </View>
 
@@ -175,7 +178,7 @@ export default function UsersAdminScreen() {
             style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
-            placeholder="ابحث بالبريد الإلكتروني..."
+            placeholder={t('searchByEmail')}
             placeholderTextColor={Colors.textMuted}
             autoCapitalize="none"
           />
@@ -215,12 +218,12 @@ export default function UsersAdminScreen() {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 80 }}>
           <Text style={styles.counter}>
-            {filteredUsers.length} من أصل {users.length} مستخدم
+            {filteredUsers.length} {t('usersOf')} {users.length} {t('usersWord')}
           </Text>
           {filteredUsers.length === 0 && (
             <View style={styles.empty}>
               <Ionicons name="search-outline" size={48} color={Colors.textMuted} />
-              <Text style={styles.emptyText}>لا يوجد مستخدمون مطابقون</Text>
+              <Text style={styles.emptyText}>{t('noMatchingUsers')}</Text>
             </View>
           )}
           {filteredUsers.map((u) => {
@@ -233,8 +236,8 @@ export default function UsersAdminScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.email}>{u.email}</Text>
                     <Text style={styles.subText}>
-                      {u.role === 'admin' ? 'مدير' : 'مستخدم'} •{' '}
-                      {new Date(u.createdAt).toLocaleDateString('ar-EG')}
+                      {u.role === 'admin' ? t('roleAdmin') : t('roleUser')} •{' '}
+                      {new Date(u.createdAt).toLocaleDateString(dateLocale)}
                     </Text>
                   </View>
                   <View style={styles.badgesCol}>
@@ -268,7 +271,7 @@ export default function UsersAdminScreen() {
                       }}
                     >
                       <Ionicons name="warning-outline" size={14} color="#F57C00" />
-                      <Text style={[styles.btnText, { color: '#F57C00' }]}>تنبيه</Text>
+                      <Text style={[styles.btnText, { color: '#F57C00' }]}>{t('warn')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.btn, styles.btnBan]}
@@ -280,7 +283,7 @@ export default function UsersAdminScreen() {
                         color="#E53935"
                       />
                       <Text style={[styles.btnText, { color: '#E53935' }]}>
-                        {u.status === 'banned' ? 'إلغاء الحظر' : 'حظر'}
+                        {u.status === 'banned' ? t('unban') : t('ban')}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -289,7 +292,7 @@ export default function UsersAdminScreen() {
                     >
                       <Ionicons name="diamond-outline" size={14} color="#1E88E5" />
                       <Text style={[styles.btnText, { color: '#1E88E5' }]}>
-                        {u.subscriptionTier === 'paid' ? 'تحويل إلى مجانية' : 'ترقية إلى مدفوعة'}
+                        {u.subscriptionTier === 'paid' ? t('convertToFree') : t('upgradeToPaid')}
                       </Text>
                     </TouchableOpacity>
                     {u.status !== 'active' && (
@@ -300,7 +303,7 @@ export default function UsersAdminScreen() {
                         }
                       >
                         <Ionicons name="checkmark-circle-outline" size={14} color="#43A047" />
-                        <Text style={[styles.btnText, { color: '#43A047' }]}>إعادة تفعيل</Text>
+                        <Text style={[styles.btnText, { color: '#43A047' }]}>{t('reactivate')}</Text>
                       </TouchableOpacity>
                     )}
                     <TouchableOpacity
@@ -308,11 +311,11 @@ export default function UsersAdminScreen() {
                       onPress={() => deleteUser(u)}
                     >
                       <Ionicons name="trash-outline" size={14} color={Colors.white} />
-                      <Text style={[styles.btnText, { color: Colors.white }]}>حذف</Text>
+                      <Text style={[styles.btnText, { color: Colors.white }]}>{t('delete')}</Text>
                     </TouchableOpacity>
                   </View>
                 )}
-                {isMe && <Text style={styles.meTag}>(حسابك الحالي)</Text>}
+                {isMe && <Text style={styles.meTag}>{t('yourAccount')}</Text>}
               </View>
             );
           })}
@@ -322,13 +325,13 @@ export default function UsersAdminScreen() {
       <Modal visible={!!warningTarget} transparent animationType="fade">
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>توجيه تنبيه</Text>
+            <Text style={styles.modalTitle}>{t('sendWarningTitle')}</Text>
             <Text style={styles.modalSub}>{warningTarget?.email}</Text>
             <TextInput
               style={styles.modalInput}
               value={warningText}
               onChangeText={setWarningText}
-              placeholder="نص التنبيه"
+              placeholder={t('warningTextPlaceholder')}
               placeholderTextColor={Colors.textMuted}
               multiline
             />
@@ -337,13 +340,13 @@ export default function UsersAdminScreen() {
                 style={[styles.btn, styles.btnGhost]}
                 onPress={() => setWarningTarget(null)}
               >
-                <Text style={styles.btnText}>إلغاء</Text>
+                <Text style={styles.btnText}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.btn, { backgroundColor: '#F57C00' }]}
                 onPress={submitWarning}
               >
-                <Text style={[styles.btnText, { color: Colors.white }]}>إرسال التنبيه</Text>
+                <Text style={[styles.btnText, { color: Colors.white }]}>{t('sendWarningBtn')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -353,11 +356,11 @@ export default function UsersAdminScreen() {
   );
 }
 
-function makeStyles() {
+function makeStyles(isRTL: boolean) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
     header: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
@@ -368,7 +371,11 @@ function makeStyles() {
     },
     backBtn: { padding: 4 },
     title: { fontSize: 18, fontWeight: '600', color: Colors.text },
-    counter: { color: Colors.textMuted, marginBottom: 12, textAlign: 'right' },
+    counter: {
+      color: Colors.textMuted,
+      marginBottom: 12,
+      textAlign: isRTL ? 'right' : 'left',
+    },
     card: {
       backgroundColor: Colors.surface,
       borderRadius: 14,
@@ -377,14 +384,24 @@ function makeStyles() {
       borderWidth: 1,
       borderColor: Colors.cardBorder,
     },
-    cardTop: { flexDirection: 'row-reverse', alignItems: 'flex-start' },
-    email: { fontSize: 15, fontWeight: '600', color: Colors.text, textAlign: 'right' },
-    subText: { fontSize: 12, color: Colors.textMuted, marginTop: 4, textAlign: 'right' },
-    badgesCol: { alignItems: 'flex-end' },
+    cardTop: { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'flex-start' },
+    email: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: Colors.text,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    subText: {
+      fontSize: 12,
+      color: Colors.textMuted,
+      marginTop: 4,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    badgesCol: { alignItems: isRTL ? 'flex-end' : 'flex-start' },
     badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
     badgeText: { fontSize: 11, fontWeight: '700' },
     warnBox: {
-      flexDirection: 'row-reverse',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       backgroundColor: 'rgba(245,124,0,0.15)',
@@ -392,10 +409,20 @@ function makeStyles() {
       borderRadius: 8,
       marginTop: 10,
     },
-    warnText: { fontSize: 12, color: '#F57C00', flex: 1, textAlign: 'right' },
-    actions: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+    warnText: {
+      fontSize: 12,
+      color: '#F57C00',
+      flex: 1,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    actions: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 12,
+    },
     btn: {
-      flexDirection: 'row-reverse',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 4,
       paddingHorizontal: 12,
@@ -410,7 +437,12 @@ function makeStyles() {
     btnReset: { borderColor: '#43A047', backgroundColor: 'rgba(67,160,71,0.12)' },
     btnDel: { borderColor: Colors.error, backgroundColor: Colors.error },
     btnGhost: { borderColor: Colors.border, backgroundColor: Colors.inputBg },
-    meTag: { color: Colors.textMuted, fontSize: 12, marginTop: 8, textAlign: 'right' },
+    meTag: {
+      color: Colors.textMuted,
+      fontSize: 12,
+      marginTop: 8,
+      textAlign: isRTL ? 'right' : 'left',
+    },
     toolbar: {
       backgroundColor: Colors.surface,
       paddingHorizontal: 16,
@@ -420,7 +452,7 @@ function makeStyles() {
       borderBottomColor: Colors.border,
     },
     searchBox: {
-      flexDirection: 'row-reverse',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       backgroundColor: Colors.inputBg,
       borderRadius: 10,
@@ -434,12 +466,12 @@ function makeStyles() {
       flex: 1,
       fontSize: 14,
       color: Colors.text,
-      textAlign: 'right',
+      textAlign: isRTL ? 'right' : 'left',
       height: '100%',
     },
-    filtersRow: { flexDirection: 'row-reverse', gap: 8, paddingTop: 10 },
+    filtersRow: { flexDirection: isRTL ? 'row-reverse' : 'row', gap: 8, paddingTop: 10 },
     chip: {
-      flexDirection: 'row-reverse',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 12,
@@ -460,9 +492,25 @@ function makeStyles() {
       justifyContent: 'center',
       padding: 24,
     },
-    modalCard: { backgroundColor: Colors.surface, borderRadius: 14, padding: 20, borderWidth: 1, borderColor: Colors.cardBorder },
-    modalTitle: { fontSize: 18, fontWeight: '700', color: Colors.text, textAlign: 'right' },
-    modalSub: { fontSize: 13, color: Colors.textMuted, marginTop: 4, textAlign: 'right' },
+    modalCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: 14,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: Colors.cardBorder,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: Colors.text,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    modalSub: {
+      fontSize: 13,
+      color: Colors.textMuted,
+      marginTop: 4,
+      textAlign: isRTL ? 'right' : 'left',
+    },
     modalInput: {
       borderWidth: 1,
       borderColor: Colors.border,
@@ -472,7 +520,7 @@ function makeStyles() {
       marginTop: 12,
       color: Colors.text,
       backgroundColor: Colors.inputBg,
-      textAlign: 'right',
+      textAlign: isRTL ? 'right' : 'left',
     },
   });
 }

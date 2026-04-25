@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { usePlant } from '@/context/PlantContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useI18n } from '@/context/I18nContext';
 import Colors from '@/constants/colors';
 
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
@@ -55,18 +56,19 @@ export default function ScanScreen() {
   const { user } = useAuth();
   const { setCurrentReport } = usePlant();
   const { mode, isDark } = useTheme();
+  const { t, lang, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const styles = useMemo(() => makeStyles(), [mode]);
+  const styles = useMemo(() => makeStyles(isRTL), [mode, isRTL]);
 
   const pickImage = async (useCamera: boolean) => {
     let result;
     if (useCamera) {
       const { granted } = await ImagePicker.requestCameraPermissionsAsync();
       if (!granted) {
-        Alert.alert('Permission required', 'Camera access is needed to scan plants');
+        Alert.alert(t('permissionRequired'), t('cameraPermission'));
         return;
       }
       result = await ImagePicker.launchCameraAsync({
@@ -97,15 +99,15 @@ export default function ScanScreen() {
 
   const analyzeImage = async () => {
     if (!user) {
-      Alert.alert('Sign in required', 'Please sign in to identify plants', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign In', onPress: () => router.push('/auth') },
+      Alert.alert(t('signInRequired'), t('signInToIdentify'), [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('signIn'), onPress: () => router.push('/auth') },
       ]);
       return;
     }
 
     if (!imageUri) {
-      Alert.alert('No image', 'Please select a photo first');
+      Alert.alert(t('noImage'), t('selectPhotoFirst'));
       return;
     }
 
@@ -117,7 +119,7 @@ export default function ScanScreen() {
         try {
           base64 = await uriToBase64(imageUri);
         } catch {
-          Alert.alert('Image error', 'Could not read the selected image. Please try again.');
+          Alert.alert(t('imageError'), t('imageReadError'));
           return;
         }
       }
@@ -125,11 +127,11 @@ export default function ScanScreen() {
       const res = await fetch(`${BASE_URL}/api/plants/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, userId: user.userId }),
+        body: JSON.stringify({ imageBase64: base64, userId: user.userId, lang }),
       });
 
       if (!res.ok) {
-        let errMsg = 'Analysis failed';
+        let errMsg = t('analysisFailed');
         try {
           const err = await res.json();
           errMsg = err.error || errMsg;
@@ -141,8 +143,8 @@ export default function ScanScreen() {
       setCurrentReport({ ...report, imageBase64: base64 });
       router.push('/report');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Could not analyze plant';
-      Alert.alert('Analysis failed', msg);
+      const msg = e instanceof Error ? e.message : t('couldNotAnalyze');
+      Alert.alert(t('analysisFailed'), msg);
     } finally {
       setAnalyzing(false);
     }
@@ -165,8 +167,8 @@ export default function ScanScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Plant Scanner</Text>
-        <Text style={styles.subtitle}>Take or upload a photo to identify</Text>
+        <Text style={styles.title}>{t('plantScanner')}</Text>
+        <Text style={styles.subtitle}>{t('scanSubtitle')}</Text>
 
         <View style={styles.previewContainer}>
           {imageUri ? (
@@ -186,8 +188,8 @@ export default function ScanScreen() {
             <LinearGradient colors={placeholderColors} style={styles.placeholder}>
               <View style={styles.placeholderInner}>
                 <Ionicons name="camera-outline" size={64} color={Colors.secondary} />
-                <Text style={styles.placeholderText}>No image selected</Text>
-                <Text style={styles.placeholderSub}>Choose a photo to identify your plant</Text>
+                <Text style={styles.placeholderText}>{t('noImageSelected')}</Text>
+                <Text style={styles.placeholderSub}>{t('choosePhotoDesc')}</Text>
               </View>
             </LinearGradient>
           )}
@@ -207,7 +209,7 @@ export default function ScanScreen() {
               style={styles.actionBtnGradient}
             >
               <Ionicons name="camera" size={26} color={Colors.white} />
-              <Text style={styles.actionBtnText}>Camera</Text>
+              <Text style={styles.actionBtnText}>{t('camera')}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
@@ -219,7 +221,7 @@ export default function ScanScreen() {
           >
             <View style={styles.actionBtnOutline}>
               <Ionicons name="images-outline" size={26} color={Colors.primary} />
-              <Text style={styles.actionBtnTextOutline}>Gallery</Text>
+              <Text style={styles.actionBtnTextOutline}>{t('gallery')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -234,12 +236,12 @@ export default function ScanScreen() {
             {analyzing ? (
               <View style={styles.analyzingRow}>
                 <ActivityIndicator color={Colors.white} />
-                <Text style={styles.analyzeBtnText}>Analyzing...</Text>
+                <Text style={styles.analyzeBtnText}>{t('analyzing')}</Text>
               </View>
             ) : (
               <View style={styles.analyzingRow}>
                 <Ionicons name="sparkles" size={22} color={Colors.white} />
-                <Text style={styles.analyzeBtnText}>Identify Plant</Text>
+                <Text style={styles.analyzeBtnText}>{t('identifyBtn')}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -247,18 +249,18 @@ export default function ScanScreen() {
 
         {!imageUri && (
           <View style={styles.tipsCard}>
-            <Text style={styles.tipsTitle}>Tips for best results</Text>
+            <Text style={[styles.tipsTitle, isRTL && styles.textRTL]}>{t('tipsTitle')}</Text>
             <View style={styles.tipRow}>
               <Ionicons name="sunny-outline" size={18} color={Colors.primary} />
-              <Text style={styles.tipText}>Good lighting improves accuracy</Text>
+              <Text style={[styles.tipText, isRTL && styles.textRTL]}>{t('tip1')}</Text>
             </View>
             <View style={styles.tipRow}>
               <Ionicons name="scan-outline" size={18} color={Colors.primary} />
-              <Text style={styles.tipText}>Focus on leaves, flowers, or unique features</Text>
+              <Text style={[styles.tipText, isRTL && styles.textRTL]}>{t('tip2')}</Text>
             </View>
             <View style={styles.tipRow}>
               <Ionicons name="expand-outline" size={18} color={Colors.primary} />
-              <Text style={styles.tipText}>Fill the frame with the plant</Text>
+              <Text style={[styles.tipText, isRTL && styles.textRTL]}>{t('tip3')}</Text>
             </View>
           </View>
         )}
@@ -267,7 +269,7 @@ export default function ScanScreen() {
   );
 }
 
-function makeStyles() {
+function makeStyles(isRTL: boolean) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -281,12 +283,14 @@ function makeStyles() {
       fontFamily: 'Inter_700Bold',
       color: Colors.text,
       marginBottom: 6,
+      textAlign: isRTL ? 'right' : 'left',
     },
     subtitle: {
       fontSize: 15,
       fontFamily: 'Inter_400Regular',
       color: Colors.textMuted,
       marginBottom: 24,
+      textAlign: isRTL ? 'right' : 'left',
     },
     previewContainer: {
       borderRadius: 24,
@@ -339,7 +343,7 @@ function makeStyles() {
       paddingHorizontal: 20,
     },
     actions: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 14,
       marginBottom: 20,
     },
@@ -396,7 +400,7 @@ function makeStyles() {
       opacity: 0.7,
     },
     analyzingRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 10,
     },
@@ -421,7 +425,7 @@ function makeStyles() {
       marginBottom: 4,
     },
     tipRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 12,
     },
@@ -430,6 +434,10 @@ function makeStyles() {
       fontFamily: 'Inter_400Regular',
       color: Colors.textSecondary,
       flex: 1,
+    },
+    textRTL: {
+      textAlign: 'right',
+      writingDirection: 'rtl',
     },
   });
 }

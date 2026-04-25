@@ -166,7 +166,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* About */}
-        <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('about')}</Text>
+        <Text style={[styles.sectionLabel, isRTL && styles.textRTL]}>{t('aboutSection')}</Text>
         <View style={styles.group}>
           <SettingRow
             icon="leaf-outline"

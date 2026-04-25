@@ -9,19 +9,7 @@ function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
 
-router.post("/", async (req, res) => {
-  const { imageBase64, userId } = req.body as {
-    imageBase64: string;
-    userId: string;
-  };
-
-  if (!imageBase64 || !userId) {
-    res.status(400).json({ error: "imageBase64 and userId required" });
-    return;
-  }
-
-  try {
-    const prompt = `You are an expert botanist. Analyze the plant in this image and produce a thorough Arabic-friendly report.
+const ARABIC_PROMPT = `You are an expert botanist. Analyze the plant in this image and produce a thorough Arabic-friendly report.
 
 Return ONLY valid JSON (no markdown, no code fences) with this EXACT structure. All textual values MUST be in Arabic except scientific_name.
 
@@ -69,6 +57,70 @@ Return ONLY valid JSON (no markdown, no code fences) with this EXACT structure. 
 }
 
 If this is not a plant or you cannot identify it, return ONLY: {"error": "Could not identify plant in image"}`;
+
+const ENGLISH_PROMPT = `You are an expert botanist. Analyze the plant in this image and produce a thorough English report.
+
+Return ONLY valid JSON (no markdown, no code fences) with this EXACT structure. All textual values MUST be in clear, natural English.
+
+{
+  "name": "Common English name",
+  "scientific_name": "Latin scientific name",
+  "description": "Detailed botanical description (3-4 sentences) about appearance, leaves and flowers.",
+  "benefits": "Brief medical, health and environmental benefits (2-3 sentences).",
+  "care": "Care instructions: watering, light, soil, temperature (2-3 sentences).",
+  "distribution": "Main geographical regions where the plant grows worldwide (1-2 sentences).",
+  "usage_methods": ["Usage method 1", "Usage method 2", "Usage method 3"],
+  "medical_benefits": ["Medical benefit 1", "Medical benefit 2", "Medical benefit 3"],
+  "nutrition": [
+    { "name": "Vitamin A", "amount": "XXX mcg", "percentage": "XX%" },
+    { "name": "Vitamin C", "amount": "XXX mg", "percentage": "XX%" },
+    { "name": "Vitamin E", "amount": "X.X mg", "percentage": "XX%" },
+    { "name": "Calcium", "amount": "XXX mg", "percentage": "XX%" },
+    { "name": "Iron", "amount": "X.X mg", "percentage": "XX%" },
+    { "name": "Magnesium", "amount": "XXX mg", "percentage": "XX%" },
+    { "name": "Potassium", "amount": "XXX mg", "percentage": "XX%" }
+  ],
+  "warnings": {
+    "risk_level": "Low | Medium | High",
+    "summary": "Short summary about the plant's risk level.",
+    "symptoms": ["Symptom 1", "Symptom 2"],
+    "child_safety": "Safe | Caution | Unsafe",
+    "pet_safety": "Safe | Caution | Unsafe",
+    "child_note": "Note for children.",
+    "pet_note": "Note for pets."
+  },
+  "soil_helper": {
+    "title": "Ideal soil recipe",
+    "ingredients": [
+      { "name": "Peat moss", "parts": "2 parts" },
+      { "name": "Perlite", "parts": "1 part" },
+      { "name": "Pine bark", "parts": "1 part" },
+      { "name": "Compost", "parts": "1 part" }
+    ],
+    "ph_range": "6.0 - 6.5",
+    "moisture_tip": "Keep the soil moist without waterlogging.",
+    "watering_tip": "Leave a 2 cm gap from the soil surface to make watering easier.",
+    "drainage_tip": "Place a layer of gravel at the bottom of the pot to prevent clogged drainage."
+  },
+  "community_alerts": ["Local alert 1", "Local alert 2"]
+}
+
+If this is not a plant or you cannot identify it, return ONLY: {"error": "Could not identify plant in image"}`;
+
+router.post("/", async (req, res) => {
+  const { imageBase64, userId, lang } = req.body as {
+    imageBase64: string;
+    userId: string;
+    lang?: "en" | "ar";
+  };
+
+  if (!imageBase64 || !userId) {
+    res.status(400).json({ error: "imageBase64 and userId required" });
+    return;
+  }
+
+  try {
+    const prompt = lang === "en" ? ENGLISH_PROMPT : ARABIC_PROMPT;
 
     const imageData = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
